@@ -29,6 +29,8 @@ Codex has a 180-second deadline; preparation and cleanup add time. The adapter w
 
 The lifecycle journal records whether browser creation never started, is in progress, has a known session, or has confirmed closure. Cleanup targets only an owned session. The adapter checks exit status, response structure, and cleanup records before delivering a result. Codex and descendants in its process group are terminated when the run finishes or times out. The MCP returns the final result after cleanup; observations and progress remain private.
 
+Browser Use Cloud creates the browser through `POST /api/v4/browsers`. The returned identity is journaled before attaching agent-browser through `AGENT_BROWSER_CDP`; ownership is never inferred from account-wide session lists. CDP disconnect alone does not stop the Cloud browser: cleanup explicitly stops the recorded ID through the provider API and checks its status. If creation returns no usable identity, the outcome remains uncertain and new work is blocked.
+
 A temporary browser uses the configured persistent Cloud profile. Login and MFA preparation are manual and separate; see [site login](install.md#log-into-another-site).
 
 ## Source map
@@ -44,6 +46,7 @@ A temporary browser uses the configured persistent Cloud profile. Login and MFA 
 | `app/schema.json` | Model response format; the executor adds metrics and cleanup state. |
 | `app/diagnostics.py` | Local configuration and CLI compatibility checks. |
 | `scripts/setup_command.py` | Dependency installation and private runtime preparation. |
+| `scripts/readiness_check.py` | Bounded real-use acceptance and fault injection; isolated development runtimes only. |
 
 Dependencies are recorded in `dependencies.json` and `requirements.txt`: Codex 0.162.1, agent-browser 0.39.1, and MCP Python SDK 2.1.1. Setup reuses existing CLIs; recorded versions are installation defaults, not an automatic version migration.
 

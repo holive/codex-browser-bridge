@@ -47,6 +47,8 @@ This connector supports **reading and research**: opening pages, following links
 
 The real integration battery passed **11/11 cases** through MCP, Codex, and Browser Use Cloud on the Grok Bot computer. It covered public navigation, search, saved login, missing information, refusal to publish, executor interruptions, and a concurrent request. All task browsers were confirmed stopped by the provider. Login was reused about **32 minutes** between queries. See [reliability and limits](docs/reliability.md).
 
+The release candidate also passed six real-use acceptance journeys from a new isolated runtime, including recovery after owned process loss and a simulated cleanup API outage. Source rollback and update were confirmed with a real task after each. Authentication and CLI binaries were inherited; an independent person's first installation remains to be checked.
+
 If browser cleanup cannot be confirmed, the bridge reports failure and blocks further work until an operator resolves it. The read/research policy is not a security sandbox. Multiuser isolation, distributed coordination, general reliability rates, and orchestrator token savings have not been demonstrated.
 
 ## Documentation

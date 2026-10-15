@@ -4,7 +4,7 @@ The bridge runs beside the orchestrator on its POSIX host. The browser runs in B
 
 ## 1. Prepare the host
 
-Obtain the repository in a durable directory. You need Python 3.11+ and Node.js 20+ with npm to install missing CLIs. The deployed environment is Linux.
+Obtain the repository in a durable directory. You need Python 3.11+ and Node.js 20+ with npm to install missing CLIs. The deployed environment is Linux. Ensure Node is available on the MCP process PATH even when reusing an existing Node-based CLI; an installed executable may still need it to start.
 
 From the repository directory:
 
@@ -95,11 +95,12 @@ The operator must inspect the private `active-run.json` and the run's `lifecycle
 Do this while no task is running. Resolve any cleanup pending before changing versions.
 
 1. Record the current repository commit, CLI versions, and runtime path. Preserve a private backup of `config.json`; do not put it in Git.
-2. Select the intended repository tag or commit and rerun setup against the **same** runtime directory.
-3. Reload the MCP connector, run `--check`, and confirm the example.com task once.
-4. If the update fails, select the previously recorded commit, rerun its installer against the same runtime, reload, and repeat that one confirmation.
+2. Stop the connector's running bridge processes through the platform's process/restart controls and verify they actually exited. A reconnect or tool refresh may keep an old MCP process alive. Stop only this installation's idle bridge processes, never unrelated bots or pending executors.
+3. Select the intended repository tag or commit and rerun setup against the **same** runtime directory.
+4. Start/reconnect the existing connector, confirm its MCP `server_info.version` matches the intended release when the client exposes it, run `--check`, and confirm the example.com task once. If server metadata is unavailable, verify that the installation's old processes exited and its new process started after the intended code was installed. Checking the source file on disk alone does not confirm the loaded server version.
+5. If the update fails, repeat this stop/install/start sequence using the previously recorded commit and confirm one task.
 
-Setup reuses installed CLIs; it does not upgrade or downgrade them automatically. New installations use the versions in `dependencies.json` and `requirements.txt`. If a change requires different CLIs, install those versions explicitly and use the installer path options. Returning to an earlier source commit alone does not roll back external dependencies. A complete rollback rehearsal is still pending; see [reliability](reliability.md).
+Setup reuses installed CLIs; it does not upgrade or downgrade them automatically. New installations use the versions in `dependencies.json` and `requirements.txt`. If a change requires different CLIs, install those versions explicitly and use the installer path options. Returning to an earlier source commit alone does not roll back external dependencies. The source rollback/update path was rehearsed on an isolated runtime with real tasks and preserved configuration; see [reliability](reliability.md). This does not validate a dependency-version migration.
 
 ## Recover after losing the host
 

@@ -13,4 +13,7 @@ flowchart LR
     S --> D["Local --check diagnostics<br/>Then one real task"]
     R["Real integration: 11/11 cases passed<br/>Navigation, search, saved login, scope refusal<br/>SIGTERM, SIGKILL and concurrency<br/>All task browsers confirmed stopped"] -.-> G
     R --> I["About 170 s combined execution<br/>Login reused after 31 min 47 s<br/>149,370 known uncached input tokens<br/>Two interruptions: usage unknown"]
-    Q["Still to validate<br/>Independent installation and rollback<br/>Host loss and provider outage during cleanup"] -.-> H
+    E["Candidate: explicit creation ID → CDP attachment<br/>6/6 real acceptance journeys, 98.6 s<br/>Saved login; process loss; simulated cleanup outage<br/>New work blocked, recovery then navigation passed"] -.-> H
+    E --> V["Source rollback and update rehearsed<br/>One successful real task after each<br/>Private configuration preserved"]
+    V --> F["Existing connector updated and processes replaced<br/>Final real task passed: 18.4 s<br/>Provider stop confirmed; no pending cleanup"]
+    Q["Still to validate<br/>Independent person's installation<br/>Actual whole-host reboot / provider-wide outage"] -.-> H
