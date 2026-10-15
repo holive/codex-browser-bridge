@@ -6,7 +6,7 @@ flowchart LR
     G --> C["Encerrar navegador<br/>Resultado final e métricas"]
     C -->|somente resultado final| O
     G -.-> L["Configuração e evidências privadas<br/>Fora do repositório"]
-    G --> R["VALIDADO NO GROK: 21 testes sem modelo/Cloud<br/>3 casos reais aprovados; 47,8 s somados<br/>3 navegadores encerrados; sem pendências"]
+    G --> R["VALIDADO NO GROK: 21 testes sem modelo/Cloud<br/>3 casos iniciais + 11 adicionais aprovados<br/>SIGTERM, SIGKILL e concorrência reais<br/>Todos encerrados; sem pendências"]
     V["VPS independente: opcional no futuro<br/>Não necessária para esta POC"]
     S["APLICADO NO GROK: instalador repetível<br/>Dependências e lançador<br/>Preserva configuração privada"] --> G
     S --> D["VALIDADO: diagnóstico local --check<br/>Configuração preservada ao reinstalar<br/>Sem modelo ou navegador"]
@@ -15,3 +15,5 @@ flowchart LR
     H --> U{"Encerramento confirmado?"}
     U -->|Sim| C
     U -->|Não| X["Falha com cleanup_pending<br/>Próxima tarefa bloqueada<br/>Conferência do operador; sem repetição automática"]
+    R --> I["Bateria adicional: cerca de 170 s de execução<br/>Login reutilizado após 31 min 47 s entre consultas<br/>Rodada final antecipada pelo usuário"]
+    I --> T["Uso conhecido: 149.370 tokens sem cache<br/>Duas interrupções com consumo desconhecido<br/>Dados e evidências completas permanecem privados"]
