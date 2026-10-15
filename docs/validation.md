@@ -10,4 +10,4 @@ A tarefa pública de referência abriu `https://example.com`, clicou em “Learn
 
 Os testes antigos específicos de sites, contas pessoais, relatórios completos, screenshots e identificadores reais ficaram fora deste repositório. Estes resultados demonstram a conexão e o contrato de delegação; não medem confiabilidade geral, economia de tokens do orquestrador ou prontidão para SaaS.
 
-A versão limpa deste repositório foi extraída da implementação validada. Ela não substituiu a instalação ativa; os tempos acima se referem à POC. A checagem local da extração carrega o MCP com configuração fictícia e confere apenas o contrato da ferramenta, sem abrir um navegador ou chamar o Codex.
+A versão limpa foi instalada no Mac após autorização. A checagem de contrato com configuração fictícia expôs somente `navegar`. Em seguida, uma chamada MCP local com Codex e Browser Use Cloud reais repetiu a tarefa pública: sucesso em 36,9 segundos e navegador encerrado. Essa última chamada confirma o executor limpo; as execuções anteriores pelo orquestrador confirmam o transporte remoto. Nenhuma migração para outro host foi executada.

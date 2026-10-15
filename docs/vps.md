@@ -10,3 +10,15 @@ A arquitetura permite trocar o host do executor mantendo o Browser Use Cloud e a
 6. Desativar os serviços locais. Manter um caminho de retorno ao Mac caso a execução na VPS falhe.
 
 Não há VPS, fila distribuída, agendador, múltiplas contas ou novo provedor incluídos nesta etapa.
+
+## Alternativa: computador do Grok Bot
+
+O executor pode, em princípio, rodar no computador persistente do próprio Grok Bot, mantendo o Browser Use Cloud separado. Essa opção ainda não foi instalada ou validada com o código deste repositório.
+
+Requisitos mínimos: Python e dependências, Codex CLI autenticado, agent-browser, chave Browser Use e perfil, código/configuração em armazenamento persistente, e uma forma de executar a tarefa até o retorno final. O Codex suporta autenticação em ambiente remoto por device code quando habilitada na conta.
+
+O Grok suporta MCP por comando na máquina da conversa. Esse transporte pode dispensar o túnel para uso pessoal, mas o servidor deste repositório ainda implementa HTTP; seria preciso adicionar a entrada stdio e validar a entrega final. Se mantiver HTTP, precisará de um processo disponível e do endereço alcançável pelo cliente.
+
+A documentação orienta guardar projetos duráveis em `/workspace` e tratar pacotes instalados manualmente como substituíveis após recuperação. Guardar instalação reproduzível e conferir a retomada faz parte da preparação. Arquivos e credenciais CLI são compartilhados pelos bots da mesma conta; a separação de telas não isola credenciais.
+
+Fontes: [Computador do Grok Bot](https://docs.x.ai/grok-bot/computer-and-apps), [MCP por comando](https://docs.x.ai/grok-bot/team-bots), [Autenticação remota do Codex](https://learn.chatgpt.com/docs/auth#login-on-headless-devices).

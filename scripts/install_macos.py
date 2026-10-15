@@ -49,5 +49,12 @@ plist_path.parent.mkdir(parents=True, exist_ok=True)
 plist_path.write_bytes(plistlib.dumps(plist))
 domain = 'gui/' + str(os.getuid())
 subprocess.run(['launchctl', 'bootout', domain + '/' + label], capture_output=True)
-subprocess.run(['launchctl', 'bootstrap', domain, str(plist_path)], check=True)
+# bootout can return before launchd has fully released the old registration.
+for attempt in range(3):
+    started = subprocess.run(['launchctl', 'bootstrap', domain, str(plist_path)], capture_output=True, text=True)
+    if started.returncode == 0:
+        break
+    if attempt == 2:
+        raise SystemExit('LaunchAgent start failed: ' + started.stderr.strip())
+    time.sleep(1)
 print(json.dumps({'installed': True, 'config_and_tunnel_preserved': True, 'tool': 'navegar'}))

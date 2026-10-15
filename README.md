@@ -60,6 +60,6 @@ A instalação em uso guarda esses dados localmente. Não é preciso apagá-los 
 
 ## Estado
 
-Este repositório registra a extração genérica da POC. A instalação ativa no Mac foi preservada, com a ferramenta genérica funcionando e uma ferramenta específica antiga ainda existente. A extração do código não foi instalada sobre esse serviço nesta etapa; a troca é uma ação separada.
+A versão limpa está instalada no Mac e expõe somente `navegar`. Endereço, credenciais e perfil existentes foram preservados. Uma chamada MCP com Codex e Browser Use Cloud reais confirmou o resultado e o encerramento em 36,9 segundos. A ferramenta antiga específica de site foi removida.
 
 MVP para uso pessoal de leitura/pesquisa. A migração para VPS está [documentada como próximo passo](docs/vps.md), sem implantação ou validação de VPS nesta etapa.
