@@ -1,9 +1,6 @@
 {
-  "public_host": "bridge.example.com",
-  "port": 63317,
-  "private_path": "/mcp/REPLACE_WITH_A_RANDOM_SECRET",
   "browser_use_api_key": "",
   "profile_id": "",
-  "agent_browser_bin": "/absolute/path/to/agent-browser",
-  "codex_bin": "codex"
+  "codex_model": "gpt-6.1-sol",
+  "codex_reasoning_effort": "high"
 }

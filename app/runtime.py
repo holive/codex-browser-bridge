@@ -1,12 +1,10 @@
 """Public application code; private configuration and runs live elsewhere."""
 import json
 import os
-import sys
 from pathlib import Path
 
 os.umask(0o077)
-default = (Path.home() / 'Library/Application Support/CodexBrowserBridge' if sys.platform == 'darwin'
-           else Path.home() / '.local/share/codex-browser-bridge')
+default = Path.home() / '.local/share/codex-browser-bridge'
 ROOT = Path(os.environ.get('CODEX_BROWSER_BRIDGE_HOME', str(default))).expanduser().resolve()
 config_path = ROOT / 'config.json'
 CONFIG = json.loads(config_path.read_text()) if config_path.exists() else {}

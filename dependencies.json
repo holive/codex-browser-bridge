@@ -1,0 +1,4 @@
+{
+  "codex": {"package": "@openai/codex", "version": "0.162.1"},
+  "agent-browser": {"package": "agent-browser", "version": "0.39.1"}
+}

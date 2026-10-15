@@ -2,10 +2,9 @@
 import asyncio,json,os,sys,time,uuid
 from pathlib import Path
 from mcp.server import MCPServer
-from mcp.server.transport_security import TransportSecuritySettings
 os.umask(0o077)
 from runtime import ROOT, CONFIG
-server=MCPServer('codex-cloud-pilot',version='0.6.0',instructions='Use navegar(tarefa,url) only for read/search browser tasks. No editing, publishing, messages, purchases or deletion. One call per user request. Local Codex performs navigation and returns only final JSON after browser cleanup. Do not poll, monitor, retry automatically or use other agents. Never send credentials in task text.')
+server=MCPServer('codex-browser-bridge',version='0.7.0',instructions='Use navegar(tarefa,url) only for read/search browser tasks. No editing, publishing, messages, purchases or deletion. One call per user request. Local Codex performs navigation and returns only final JSON after browser cleanup. Do not poll, monitor, retry automatically or use other agents. Never send credentials in task text.')
 lock=asyncio.Lock()
 @server.tool()
 async def navegar(tarefa:str,url:str)->dict:
@@ -41,21 +40,15 @@ async def dispatch(request):
    (state/'delivery-error.json').write_text(json.dumps({'finished_epoch':time.time(),'type':type(exc).__name__}))
    if isinstance(exc,asyncio.CancelledError):raise
    return {'status':'failed','run_id':run_id,'error':'Executor or delivery failed ('+type(exc).__name__+'). Do not retry automatically.'}
-def make_http_app():
- security=TransportSecuritySettings(enable_dns_rebinding_protection=True,allowed_hosts=['127.0.0.1:*','localhost:*',CONFIG['public_host']],allowed_origins=['https://'+CONFIG['public_host']])
- mcp_app=server.streamable_http_app(streamable_http_path=CONFIG['private_path'],json_response=True,stateless_http=True,transport_security=security)
- async def app(scope,receive,send):
-  if scope['type']=='http' and scope['path']=='/health':
-   await send({'type':'http.response.start','status':200,'headers':[(b'content-type',b'application/json')]});await send({'type':'http.response.body','body':b'{"status":"ok","scope":"browser-read-search"}'});return
-  await mcp_app(scope,receive,send)
- return app
 if __name__=='__main__':
  import argparse
  parser=argparse.ArgumentParser()
- parser.add_argument('--transport',choices=['stdio','http'],default='http')
+ parser.add_argument('--transport',choices=['stdio'],default='stdio')
+ parser.add_argument('--check',action='store_true',help='Check local prerequisites without browser or model calls')
  args=parser.parse_args()
- if args.transport=='stdio':
-  server.run(transport='stdio')
- else:
-  import uvicorn
-  uvicorn.run(make_http_app(),host='127.0.0.1',port=CONFIG['port'],access_log=False,log_level='warning',timeout_graceful_shutdown=65)
+ if args.check:
+  from diagnostics import diagnose
+  report=diagnose(ROOT)
+  print(json.dumps(report,ensure_ascii=False))
+  sys.exit(0 if report['status']=='ready' else 1)
+ server.run(transport='stdio')

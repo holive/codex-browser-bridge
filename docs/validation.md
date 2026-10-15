@@ -1,30 +1,21 @@
-# Validação do MVP
+# Validação da POC
 
-Em 15/10/2026, um orquestrador real chamou o MCP, o Codex CLI no host executor controlou um navegador real do Browser Use Cloud e a ferramenta retornou apenas o resultado final após encerrar o navegador.
+Em 15/10/2026, o Maestro chamou `navegar` pelo conector `codex-browser-command`, do tipo Command/stdio. O processo MCP e o Codex CLI rodaram no computador do Grok; o navegador rodou no Browser Use Cloud. A chave foi fornecida pelo usuário em armazenamento privado, sem Git. Somente o resultado final foi entregue depois de encerrar o navegador.
 
-A tarefa pública de referência abriu `https://example.com`, clicou em “Learn more” e retornou o título **Example Domains** e `https://www.iana.org/help/example-domains`.
-
-- Primeira confirmação da ferramenta genérica: 85,2 segundos.
-- Repetição solicitada diretamente pelo usuário ao orquestrador: 39,2 segundos, usando o conector já cadastrado. Resultado correto e encerramento confirmados nos registros locais e pelo usuário.
-- Perfil persistente e reabertura de navegadores foram validados na POC. O login em novos sites é preparado manualmente; a validade depende de cada site.
-
-Os testes antigos específicos de sites, contas pessoais, relatórios completos, screenshots e identificadores reais ficaram fora deste repositório. Estes resultados demonstram a conexão e o contrato de delegação; não medem confiabilidade geral, economia de tokens do orquestrador ou prontidão para SaaS.
-
-A versão limpa foi instalada no Mac após autorização. A checagem de contrato com configuração fictícia expôs somente `navegar`. Em seguida, uma chamada MCP local com Codex e Browser Use Cloud reais repetiu a tarefa pública: sucesso em 36,9 segundos e navegador encerrado. Essa última chamada confirma o executor limpo; as execuções anteriores pelo orquestrador confirmam o transporte remoto. Essa checagem ocorreu na instalação do Mac.
-
-## Executor no computador do Grok Bot — caminho ativo
-
-Em 15/10/2026, o Maestro chamou `navegar` pelo novo conector `codex-browser-command`, do tipo Command/stdio. O processo MCP e o Codex CLI rodaram no computador do Grok; o navegador continuou no Browser Use Cloud. A chave foi fornecida manualmente pelo usuário no gerenciador de segredos e configurada no runtime privado, sem Git. O mesmo perfil Cloud foi configurado; esta tarefa pública não verifica login.
-
-A primeira execução falhou porque o shell de login redefiniu o PATH (`agent-browser: command not found`); o navegador foi encerrado. A correção informa ao Codex o caminho absoluto do wrapper permitido, preservando a interface e as permissões. Uma repetição da tarefa de referência concluiu com `succeeded`, título **Example Domains**, URL `https://www.iana.org/help/example-domains` e `browser_closed: true`.
+A tarefa abriu `https://example.com`, clicou em “Learn more” e retornou **Example Domains** e `https://www.iana.org/help/example-domains`, com `succeeded` e `browser_closed: true`.
 
 - Tempo total: cerca de 18,0 s; preparação 1,8 s; Codex 15,4 s.
-- Tokens do Codex: entrada 75.371; cache 59.136; sem cache 16.235; saída 271.
-- Resultado entregue pelo MCP após encerrar o navegador; sem observações ou cliques intermediários enviados ao orquestrador. Não foi medida a contagem de tokens do Maestro.
-- Código executado: commit `1495004`. Naquele momento, a instalação HTTPS do Mac ainda estava disponível; foi desativada em seguida, como registrado abaixo. Não foi necessária VPS independente nem túnel para esse conector.
+- Tokens Codex: entrada 75.371; cache 59.136; sem cache 16.235; saída 271.
+- Código dessa execução: commit `1495004`. O erro inicial de PATH foi corrigido usando o caminho absoluto do wrapper permitido, sem ampliar permissões.
 
-Esta validação cobre uma tarefa pública no novo host. Retomada após recuperação da máquina, uso multiusuário e novas sessões autenticadas nesse host não foram testados.
+Isso confirma a conexão e essa tarefa pública. Não comprova confiabilidade geral, suporte multiusuário, economia quantitativa de tokens do Maestro ou retomada após recuperação do host. Login manual e persistência de perfil foram exercitados em etapas anteriores da POC; esta chamada pública no host do Grok não verifica login.
 
-## Encerramento da instalação no Mac
+Resultados de contas pessoais, capturas, logs e identificadores reais não pertencem ao repositório. Histórico detalhado permanece nos commits e nas evidências privadas, sem fazer parte da instalação atual.
 
-Após a validação no computador do Grok, o usuário solicitou manter apenas esse caminho. Em 15/10/2026, os serviços macOS da ponte e do túnel foram parados e desabilitados no launchd; o conector HTTPS antigo foi retirado do Maestro. `codex-browser-command` permanece ativo. Arquivos e configurações privadas do Mac não foram apagados. Nenhuma nova navegação foi necessária para essa desativação.
+## Instalação e recuperação — simulação isolada
+
+Em 15/10/2026, o novo instalador foi executado em uma pasta privada nova, com espaços no caminho, fora do repositório. Ele criou uma `.venv`, instalou o MCP SDK 2.1.1 e agent-browser 0.39.1 reais e reutilizou um Codex já instalado e autenticado. A etapa de autenticação apenas consultou o estado local. A versão registrada do pacote Codex para instalações novas também foi encontrada no registro npm.
+
+A checagem usou o SDK MCP real para iniciar o lançador, fazer handshake e listar a ferramenta única `navegar`. Uma chamada sem chave/perfil retornou `requires_setup`, sem abrir navegador ou iniciar o modelo. Em seguida, uma reinstalação preservou configuração privada fictícia de chave, perfil, modelo e esforço; um valor fictício recebido por variável de ambiente não foi gravado nem mostrado. Um executável Codex fictício com interface alterada foi corretamente recusado pelo diagnóstico.
+
+A ausência de Node/npm também produziu uma orientação explícita antes da instalação. O teste cobre preparação e diagnóstico no ambiente isolado; não simula a interface de cadastro do Grok, não autentica uma conta nova e não valida a recuperação dos logins Cloud. Não houve novas chamadas ao modelo ou ao Browser Use Cloud. A instalação em uso no Grok não foi modificada nesta rodada.

@@ -4,15 +4,9 @@
 
 A única instalação ativa no Maestro é `codex-browser-command`, com transporte MCP Command/stdio. O processo MCP inicia o Codex CLI autenticado com ChatGPT no computador do Grok. O CLI acessa o modelo remotamente e controla, via agent-browser, um navegador no Browser Use Cloud. Host do executor e navegador são camadas separadas.
 
-O servidor oferece `--transport stdio`. O orquestrador inicia o processo e aguarda o retorno da ferramenta; esse caminho não usa túnel, hostname público ou serviço HTTP.
+O servidor usa exclusivamente stdio. O orquestrador inicia o processo e aguarda o retorno da ferramenta. A instalação e a recuperação estão no [guia de instalação](install.md): um comando prepara as dependências e gera o lançador; autenticação e configuração privada permanecem separadas.
 
-1. Guarde o código em uma pasta durável do computador remoto e prepare uma pasta privada para o runtime.
-2. Crie `.venv` nessa pasta e instale `requirements.txt`. Confirme Codex autenticado e agent-browser disponível (a POC usa 0.39.1).
-3. Execute `python3 scripts/setup_command.py --home /caminho/privado/do/runtime`, informando `--agent-browser /caminho/do/binario` se necessário.
-4. Cadastre o `run-command.sh` gerado como MCP **Command**. Disponibilize `BROWSER_USE_API_KEY` pelo gerenciador de segredos do Grok no ambiente do processo e configure `BROWSER_USE_PROFILE_ID` com o perfil escolhido. Não coloque valores secretos no comando, nos argumentos ou no Git.
-5. Ao preparar uma nova instalação, chame `navegar` uma vez com uma tarefa pública simples e confira a conclusão. Se faltar chave ou perfil, a ferramenta retorna `requires_setup` sem executar Codex ou abrir navegador.
-
-O instalador por comando copia o código e cria os lançadores; não instala dependências nem grava a chave recebida pelo ambiente em arquivo. O runtime lê configuração privada opcional e prioriza as duas variáveis acima. A disponibilidade de credenciais no conector por comando deve ser confirmada no chat do proprietário do Grok; não há suporte multiusuário neste MVP.
+`run-command.sh --check` executa somente o diagnóstico local. Sem argumentos, o processo serve MCP e reserva stdout ao protocolo. O instalador pode ser repetido e preserva a configuração existente. Modelo e esforço são configuráveis no runtime privado.
 
 ## Interface MCP
 
@@ -37,13 +31,14 @@ Uma tarefa por vez; sem fila, polling ou repetição automática. O Codex tem pr
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| `app/server.py` | Contrato MCP, transporte stdio/HTTP, uma execução por vez e entrega final. |
+| `app/server.py` | Contrato MCP stdio, uma execução por vez e entrega final. |
+| `app/diagnostics.py` | Verifica requisitos e compatibilidade básica das CLIs, sem modelo ou navegador. |
 | `app/executor.py` | Inicia Codex, registra métricas da execução e encerra o navegador. |
 | `app/browser.py` e `app/browser_cli.py` | Conexão com Browser Use Cloud e comandos permitidos. |
 | `app/navigation_guard.py` | Verificação de URLs de navegação. |
 | `app/executor-policy.txt` | Regras genéricas de leitura e pesquisa. |
 | `app/schema.json` | Formato da resposta solicitada ao modelo; o executor acrescenta métricas e estado do navegador. |
-| `scripts/setup_command.py` | Prepara os lançadores do transporte Command/stdio. |
+| `scripts/setup_command.py` | Instala dependências ausentes e prepara os lançadores Command/stdio. |
 
 O executor permite abrir páginas públicas HTTP(S), navegar por links/menus, rolar e preencher buscas, reutilizando um perfil de login persistente. O navegador de cada tarefa é efêmero. Login e MFA são preparados manualmente no mesmo perfil Cloud, fora da ferramenta MCP; veja [o guia de uso](usage.md#login-em-outro-site).
 

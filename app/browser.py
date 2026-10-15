@@ -33,7 +33,7 @@ def call(args, session):
         'AGENT_BROWSER_CONFIG': str(ROOT / 'agent-browser.json'),
         'AGENT_BROWSER_AUTO_CONNECT': 'false',
         'AGENT_BROWSER_PROVIDER': 'browseruse',
-        'AGENT_BROWSER_NAMESPACE': 'codex-mac-bridge',
+        'AGENT_BROWSER_NAMESPACE': 'codex-browser-bridge',
         'AGENT_BROWSER_SESSION': session,
         'AGENT_BROWSER_IDLE_TIMEOUT_MS': '900000',
     })
@@ -43,7 +43,7 @@ def call(args, session):
     started = time.monotonic()
     result = subprocess.run([
         CONFIG['agent_browser_bin'], '--config', str(ROOT / 'agent-browser.json'),
-        '--provider', 'browseruse', '--namespace', 'codex-mac-bridge', '--session', session, *args,
+        '--provider', 'browseruse', '--namespace', 'codex-browser-bridge', '--session', session, *args,
     ], cwd=ROOT / 'execution', env=env, capture_output=True, text=True, timeout=60)
     with (ROOT / 'execution/browser-call-times.jsonl').open('a') as log:
         log.write(json.dumps({'action': args[0], 'seconds': round(time.monotonic() - started, 3),

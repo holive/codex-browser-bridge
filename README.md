@@ -39,6 +39,7 @@ O fluxo foi validado em uma tarefa pública: abrir example.com, seguir “Learn 
 
 ## Documentação
 
+- [Instalação e recuperação](docs/install.md): preparar do zero, diagnosticar e adaptar mudanças de versão.
 - [Uso](docs/usage.md): pedidos, login e tratamento dos retornos.
 - [Guia técnico](docs/technical.md): instalação, interface MCP, implementação e limites.
 - [Arquitetura](docs/architecture.mmd): diagrama das conexões e responsabilidades.
