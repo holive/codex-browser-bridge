@@ -1,6 +1,7 @@
 """Browser Use transport. No website-specific workflow or login recipe."""
 import json
 import os
+from pathlib import Path
 import subprocess
 import time
 import urllib.request
@@ -18,32 +19,36 @@ def api(path, method='GET', body=None):
         return json.loads(response.read())
 
 
-def browsers():
-    result = api('/browsers?page=1&page_size=30')
-    return result.get('items', []) if isinstance(result, dict) else result
+def create_browser():
+    # The response identifies this task's browser even if other sessions exist.
+    return api('/browsers', 'POST', {'profileId': CONFIG['profile_id'],
+                                   'proxyCountryCode': None, 'enableRecording': False})
 
 
 def call(args, session):
     env = dict(os.environ)
     env.update({
-        'BROWSER_USE_API_KEY': CONFIG['browser_use_api_key'],
-        'BROWSER_USE_PROFILE_ID': CONFIG['profile_id'],
-        'BROWSER_USE_PROXY_COUNTRY': 'none',
-        'BROWSER_USE_ENABLE_RECORDING': 'false',
         'AGENT_BROWSER_CONFIG': str(ROOT / 'agent-browser.json'),
         'AGENT_BROWSER_AUTO_CONNECT': 'false',
-        'AGENT_BROWSER_PROVIDER': 'browseruse',
         'AGENT_BROWSER_NAMESPACE': 'codex-browser-bridge',
         'AGENT_BROWSER_SESSION': session,
         'AGENT_BROWSER_IDLE_TIMEOUT_MS': '900000',
     })
-    for key in ('AGENT_BROWSER_CDP', 'AGENT_BROWSER_PROFILE', 'AGENT_BROWSER_STATE',
+    for key in ('AGENT_BROWSER_PROVIDER', 'AGENT_BROWSER_CDP', 'AGENT_BROWSER_PROFILE', 'AGENT_BROWSER_STATE',
                 'AGENT_BROWSER_RESTORE', 'AGENT_BROWSER_SESSION_NAME'):
         env.pop(key, None)
+    if args[0] != 'close':
+        state = os.environ.get('BROWSER_EXECUTOR_STATE')
+        if not state:
+            raise RuntimeError('No owned browser state')
+        record = json.loads((Path(state) / 'lifecycle.json').read_text())
+        if record.get('session') != session or record.get('phase') != 'active' or not record.get('cdp_url'):
+            raise RuntimeError('No owned browser connection')
+        env['AGENT_BROWSER_CDP'] = record['cdp_url']
     started = time.monotonic()
     result = subprocess.run([
         CONFIG['agent_browser_bin'], '--config', str(ROOT / 'agent-browser.json'),
-        '--provider', 'browseruse', '--namespace', 'codex-browser-bridge', '--session', session, *args,
+        '--namespace', 'codex-browser-bridge', '--session', session, *args,
     ], cwd=ROOT / 'execution', env=env, capture_output=True, text=True, timeout=60)
     with (ROOT / 'execution/browser-call-times.jsonl').open('a') as log:
         log.write(json.dumps({'action': args[0], 'seconds': round(time.monotonic() - started, 3),

@@ -12,7 +12,7 @@ from runtime import ROOT, CONFIG
 from lifecycle import read_journal, recover
 
 os.umask(0o077)
-server = MCPServer('codex-browser-bridge', version='0.8.0', instructions='Use navegar(tarefa,url) only for read/search. No editing, publishing, messages, purchases or deletion. Return only the final result. Do not poll or retry automatically. Never send credentials in task text.')
+server = MCPServer('codex-browser-bridge', version='0.9.0-rc.1', instructions='Use navegar(tarefa,url) only for read/search. No editing, publishing, messages, purchases or deletion. Return only the final result. Do not poll or retry automatically. Never send credentials in task text.')
 lock = asyncio.Lock()
 EXECUTOR_TIMEOUT = 300
 CANCEL_GRACE = 60

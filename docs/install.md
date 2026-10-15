@@ -1,58 +1,110 @@
-# Instalar ou recuperar a ponte
+# Install and use
 
-O objetivo é preparar um executor no computador do Grok, disponibilizar sua configuração privada e cadastrar um MCP por comando. Telas e mecanismos de segredos podem mudar; o contrato abaixo é o que precisa continuar funcionando.
+The bridge runs beside the orchestrator on its POSIX host. The browser runs in Browser Use Cloud. This guide describes the required contract rather than a particular version of the Grok settings screen.
 
-## 1. Preparar o computador
+## 1. Prepare the host
 
-Obtenha este repositório privado em uma pasta durável. É necessário acesso ao GitHub privado, um host POSIX (Linux no ambiente implantado), Python 3.11+ e, para instalar os CLIs ausentes, Node.js 20+ com npm. Use os mecanismos disponíveis na versão atual do Grok para esses requisitos.
+Obtain the repository in a durable directory. You need Python 3.11+ and Node.js 20+ with npm to install missing CLIs. The deployed environment is Linux.
 
-Na pasta do repositório, execute:
+From the repository directory:
 
 ```sh
 python3 scripts/setup_command.py --home /workspace/codex-browser-bridge-runtime
 ```
 
-O caminho é um exemplo: escolha uma pasta privada e durável **fora do repositório**. O instalador cria o ambiente Python, instala as dependências, instala Codex e agent-browser se ausentes e gera `run-command.sh`. Executáveis existentes são reutilizados; `--codex /caminho` e `--agent-browser /caminho` permitem escolhê-los explicitamente. O mesmo comando pode reparar ou atualizar o código sem zerar configuração privada, autenticação Codex ou perfil Cloud.
+Choose a private, durable runtime directory **outside the repository**. The installer creates the Python environment, installs missing CLIs, copies the application, and generates `run-command.sh`. Existing executables are reused; `--codex /absolute/path` and `--agent-browser /absolute/path` select them explicitly.
 
-O relatório JSON informa o comando MCP e as pendências. Saídas: `0` = requisitos locais prontos; `1` = instalação preparada, mas há requisito pendente; `2` = preparação falhou. O diagnóstico não chama modelo nem abre navegador.
+Rerunning setup preserves private configuration, Codex authentication, and the Cloud profile reference. It does not recover a deleted Cloud profile. Its JSON report gives the launcher path and outstanding requirements. Exit codes: `0` local requirements ready; `1` runtime prepared but setup remains incomplete; `2` preparation failed. Setup and its diagnostics do not call a model or open a browser.
 
-## 2. Concluir as ações privadas
+## 2. Provide private access
 
-- Autentique o Codex **nesse host**, pelo fluxo suportado pela versão instalada. O instalador verifica o estado, sem copiar autenticação de outra máquina.
-- Disponibilize `BROWSER_USE_API_KEY` e `BROWSER_USE_PROFILE_ID` no ambiente do processo MCP pelo armazenamento privado da plataforma. O `config.json` privado do runtime também é aceito; variáveis de ambiente têm prioridade. Não envie valores em tarefas, argumentos, Git ou mensagens.
-- Para reutilizar logins Cloud, mantenha o mesmo perfil e uma conta/chave com acesso a ele. Recriar o código não recupera um perfil apagado. Login em sites segue o [fluxo manual separado](usage.md#login-em-outro-site).
+Authenticate Codex **on this host** using its supported login flow. The installer checks local authentication; it does not copy credentials from another machine.
 
-O instalador não grava segredos vindos do ambiente. Valores existentes na configuração privada são preservados.
+Provide these variables to the **MCP process**, using the platform's private environment or secret storage:
 
-## 3. Cadastrar o MCP
-
-Use o mecanismo MCP disponível na versão atual do Grok:
-
-| Campo | Valor esperado |
+| Variable | Purpose |
 | --- | --- |
-| Nome sugerido | `codex-browser-command` |
-| Transporte | Command / stdio |
-| Comando | Caminho absoluto de `run-command.sh`, retornado pelo instalador |
-| Argumentos | Nenhum |
-| Segredos | Chave e perfil disponíveis **no processo MCP**, não só no terminal |
-| Ferramenta | `navegar(tarefa, url)` |
+| `BROWSER_USE_API_KEY` | Access to Browser Use Cloud. |
+| `BROWSER_USE_PROFILE_ID` | The persistent profile this installation will reuse. |
 
-Se a interface do Grok mudar, adapte o cadastro a esse contrato. Não reproduza obrigatoriamente uma sequência antiga de cliques. Evite conectores duplicados para a mesma ponte.
+Alternatively, set `browser_use_api_key` and `profile_id` in the runtime's private `config.json`. Environment variables take precedence. Setup preserves existing configuration but never saves secrets supplied through the environment. Keep values out of task text, command arguments, chat, and Git.
 
-## 4. Conferir uma vez
+## 3. Register the connector
 
-Execute `run-command.sh --check` no mesmo ambiente que fornecerá os segredos ao MCP. Ele verifica dependências, autenticação local, presença de configuração e opções necessárias das CLIs, sem mostrar valores secretos. `ready` confirma somente requisitos locais; não valida remotamente chave, perfil ou acesso ao modelo.
+| Field | Value |
+| --- | --- |
+| Suggested name | `codex-browser-command` |
+| Transport | Command / stdio |
+| Command | Absolute `run-command.sh` path returned by setup. |
+| Arguments | None. |
+| Private environment | Cloud key and profile available to this process. |
+| Tool | `navegar(tarefa, url)` |
 
-Depois faça uma única tarefa real pelo conector:
+If Grok changes its interface, adapt the registration to this contract. Do not reproduce an old sequence of clicks or create duplicate connectors.
 
-> Use codex-browser-command para abrir https://example.com, clicar em Learn more e retornar título e URL de destino. Aguarde apenas o resultado final.
+## 4. Confirm one real task
 
-Resultado esperado: `succeeded`, título `Example Domains`, URL da IANA e `browser_closed: true`. Se funcionar, não precisa repetir uma bateria de testes.
+Run the generated launcher with `--check` in the same private environment the MCP will use. A `ready` result confirms local prerequisites only; it does not validate the Cloud key, profile, or model access remotely.
 
-## Quando alguma versão mudar
+Then ask Maestro:
 
-Versões para instalar CLIs ausentes ficam em `dependencies.json`; dependências Python ficam em `requirements.txt`. Executáveis já instalados não são atualizados/rebaixados automaticamente. O diagnóstico avisa se diferem das versões registradas e verifica as opções exigidas. Isso detecta incompatibilidades básicas, não toda mudança de comportamento.
+> Use codex-browser-command to open https://example.com, click “Learn more,” and return the destination page's title and URL. Wait and give me only the final result.
 
-Modelo e esforço ficam no `config.json` privado (`codex_model` e `codex_reasoning_effort`); padrões em `config.example.json`. Flags Codex pertencem a `app/executor.py`; conexão Browser Use pertence a `app/browser.py`. Consulte a ajuda/documentação atual do componente afetado para adaptar essa parte, preservando as proteções.
+Expected result: `succeeded`, title `Example Domains`, destination `https://www.iana.org/help/example-domains`, and `browser_closed: true`. A successful first task is enough to confirm a normal installation; do not repeat the development test battery.
 
-Para recuperar após perder o computador: obtenha o repositório, rode o instalador, autentique o Codex, forneça chave e referência ao perfil, cadastre o comando e confirme uma tarefa. Logs antigos não são requisitos de recuperação.
+## Everyday requests
+
+Give a complete URL and a concrete question, without placeholders or credentials:
+
+> Use codex-browser-command to open https://news.ycombinator.com/ and return the titles and links of the first three stories. Give me only the final result.
+
+The tool and its parameters retain their Portuguese names: `navegar(tarefa, url)`. Task instructions may be in English. Site-specific instructions can live in the orchestrator's skills or configuration and be included in `tarefa`; they do not need another MCP tool.
+
+## Log into another site
+
+Login preparation is manual and separate from the tool. Logging into your ordinary browser does not authenticate the Cloud profile.
+
+1. Ask the operator to open the site's login page in Browser Use Cloud **using this installation's profile**.
+2. The operator creates the preparation session and privately supplies its remote browser window. Complete login and MFA there; do not send credentials to the bot.
+3. Tell the operator when finished. They close the preparation session so the profile is saved.
+4. Send a read-only task through the connector. It will reuse the profile. If the site expires or revokes the login, repeat the preparation.
+
+The bridge does not include a login-window tool. `requires_auth` ends the current task and closes its browser; it means manual preparation is needed.
+
+## Handle a result
+
+| Status | Action |
+| --- | --- |
+| `succeeded` | Use the final answer. |
+| `requires_setup` | Provide missing private configuration to the MCP process. |
+| `requires_auth` | Prepare or renew the site login manually. |
+| `out_of_scope` | The request asks for changes this connector does not support. |
+| `busy` | Wait for the active task; inspect cleanup if `cleanup_pending` is present. |
+| `failed` / `timed_out` | Read the error before deciding whether to try again. |
+
+There are no automatic retries. Use one runtime and one account/profile per installation. The lock coordinates processes using that runtime on the same host; it does not coordinate different directories or hosts.
+
+### Unconfirmed cleanup
+
+`cleanup_pending: true` means browser shutdown was not confirmed. Do not treat the response as success or retry automatically. The runtime remains blocked even after restarting the MCP.
+
+The operator must inspect the private `active-run.json` and the run's `lifecycle.json`, check for remaining task processes, and stop the recorded Cloud browser if necessary. If creation returned no identity, inspect the provider dashboard and timestamps; do not guess or stop unrelated sessions. **Only after confirming that no task process or browser remains** may the operator archive `active-run.json` to release the runtime. Preserve diagnostic records privately.
+
+## Update or roll back
+
+Do this while no task is running. Resolve any cleanup pending before changing versions.
+
+1. Record the current repository commit, CLI versions, and runtime path. Preserve a private backup of `config.json`; do not put it in Git.
+2. Select the intended repository tag or commit and rerun setup against the **same** runtime directory.
+3. Reload the MCP connector, run `--check`, and confirm the example.com task once.
+4. If the update fails, select the previously recorded commit, rerun its installer against the same runtime, reload, and repeat that one confirmation.
+
+Setup reuses installed CLIs; it does not upgrade or downgrade them automatically. New installations use the versions in `dependencies.json` and `requirements.txt`. If a change requires different CLIs, install those versions explicitly and use the installer path options. Returning to an earlier source commit alone does not roll back external dependencies. A complete rollback rehearsal is still pending; see [reliability](reliability.md).
+
+## Recover after losing the host
+
+Obtain the repository on a replacement POSIX host, run setup, authenticate Codex there, provide the Cloud key and existing profile reference, register the launcher, and confirm one real task. Logs from the lost host are not required for installation. Check the Cloud account for an unfinished browser from the lost task before allowing new work. Recovery of a deleted profile or expired site login requires separate manual preparation.
+
+## When a component changes
+
+`--check` warns about versions differing from the recorded versions and checks required CLI options. It cannot prove behavioral compatibility. Model and reasoning settings are `codex_model` and `codex_reasoning_effort` in private `config.json`. See [technical reference](technical.md) for the component boundaries; adjust only the affected integration while preserving the lifecycle checks.

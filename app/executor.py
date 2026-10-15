@@ -9,7 +9,7 @@ import threading
 import time
 from pathlib import Path
 from runtime import ROOT, CONFIG
-from browser import api, browsers, call
+from browser import api, create_browser, call
 from lifecycle import kill_model_group, stop_owned, write_journal
 
 STATE = Path(os.environ.get('BROWSER_EXECUTOR_STATE', str(ROOT / 'runs/manual')))
@@ -40,17 +40,24 @@ def execute(request, model_timeout=180):
         from navigation_guard import check_url
         check_url(request['url'])
         (STATE / 'received-request.json').write_text(json.dumps(request, ensure_ascii=False, indent=2))
-        known = {b['id'] for b in browsers()}
         setup = time.monotonic()
         record['phase'] = 'creating'
         write_journal(STATE, record)
-        browser(['open', 'about:blank'])
-        new = [b for b in browsers() if b['id'] not in known and b['status'] == 'active']
-        if len(new) != 1:
-            raise RuntimeError('Owned browser not uniquely identified')
-        record.update(phase='active', browser_id=new[0]['id'])
+        created = create_browser()
+        browser_id = created.get('id') if isinstance(created, dict) else None
+        if not isinstance(browser_id, str) or not browser_id:
+            raise RuntimeError('Browser creation returned no identity; cleanup requires inspection')
+        # Record ownership before attachment: an invalid endpoint must not lose the ID.
+        record.update(phase='active', browser_id=browser_id)
         write_journal(STATE, record)
-        audit['browser_id'] = record['browser_id']
+        audit['browser_id'] = browser_id
+        endpoint = created.get('cdpUrl')
+        from urllib.parse import urlparse
+        if not isinstance(endpoint, str) or urlparse(endpoint).scheme not in {'ws', 'wss', 'http', 'https'} or not urlparse(endpoint).hostname:
+            raise RuntimeError('Browser creation returned an invalid connection endpoint')
+        record['cdp_url'] = endpoint
+        write_journal(STATE, record)
+        browser(['open', 'about:blank'])
         result['metrics']['setup_seconds'] = round(time.monotonic() - setup, 3)
         prompt = (Path(__file__).with_name('executor-policy.txt')).read_text() + '\nExecutável permitido: ' + shlex.quote(str(ROOT / 'commands/agent-browser')) + '\nUse sempre esse caminho absoluto no lugar de agent-browser; o shell pode redefinir PATH.\nURL inicial: ' + json.dumps(request['url']) + '\nTarefa: ' + json.dumps(request['task'], ensure_ascii=False) + '\nComece abrindo a URL inicial. Execute somente leitura/pesquisa e termine com o JSON solicitado.'
         (STATE / 'codex-prompt.txt').write_text(prompt)

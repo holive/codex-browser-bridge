@@ -30,7 +30,11 @@ def stop_owned(state, close, api):
     record = read_journal(state)
     if record['phase'] in {'not_started', 'closed'}:
         return bool(record.get('browser_closed')), False
-    # close targets the run's unique agent-browser session, never a shared default.
+    if not record.get('browser_id'):
+        record.update(phase='cleanup_pending', browser_closed=False)
+        write_journal(state, record)
+        return False, True
+    # CDP close detaches; the provider API below stops only the recorded browser.
     try:
         close()
     except Exception:

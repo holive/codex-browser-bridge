@@ -9,7 +9,7 @@ from pathlib import Path
 
 CODEX_FLAGS = ('--ignore-user-config', '--ephemeral', '--skip-git-repo-check',
                '--approve-for-me', '--json', '--output-schema', '--output-last-message')
-BROWSER_FLAGS = ('--provider', '--namespace', '--session', '--config')
+BROWSER_FLAGS = ('--cdp', '--namespace', '--session', '--config')
 
 
 def probe(binary, *args):

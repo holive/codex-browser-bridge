@@ -1,92 +1,49 @@
-# Confiabilidade — bateria de 15/10/2026
+# Reliability and limits
 
-A bateria encontrou e corrigiu cinco falhas antes de confirmar o fluxo real. O código aplicado no computador do Grok foi `78ac5c9` (servidor 0.8.0). A chave, o perfil Cloud e a autenticação Codex foram preservados.
+These observations describe the tested scenarios, not a general success rate or a security certification. Full reports, account data, session identifiers, and logs remain private.
 
-## Testes sem modelo ou Cloud
+## Real integration battery — 2026-10-15
 
-A suíte usa processos reais e implementações fictícias do modelo/provedor. Passou **21/21** no ambiente de desenvolvimento em cerca de 6,8 s e **21/21 no Linux do Grok em cerca de 4,2 s**. Nenhuma tarefa de modelo ou sessão Cloud é iniciada por esses testes.
+**11/11 cases passed** through MCP Command, Codex CLI, agent-browser, and Browser Use Cloud on the Grok Bot Linux host, using runner commit `bd29ef8`. Each task browser was confirmed stopped independently through the provider API. No `cleanup_pending` or active-run marker remained at the end.
 
-| Grupo | Casos | O que foi exercitado |
+| Scenario | Calls | Expected outcome observed |
 | --- | ---: | --- |
-| Adaptador MCP e concorrência | 8 | Dois processos disputando o runtime, morte abrupta do processo MCP, cancelamento, timeout, saída inválida, código de saída com erro, bloqueio persistente e liberação após limpeza confirmada |
-| Executor e encerramento | 9 | Timeout e SIGTERM reais, processo descendente após saída do líder, falha antes da criação, criação com resultado desconhecido, falha de fechamento, parada por API, recusa de alteração e estado de modelo inválido |
-| Entradas/configuração | 2 | URLs inválidas/privadas/credenciais, tarefas vazias/grandes e configuração ausente sem iniciar executor |
-| Recuperação | 2 | Parar somente o ID registrado e não adivinhar um navegador quando a criação não devolveu identidade |
+| Public page → link → destination | 3 | Correct title and final URL. |
+| Public search | 2 | Requested destination reached. |
+| Query using a saved login | 2 | Authenticated without another login. |
+| Information absent from the page | 1 | Reported missing information. |
+| Request to publish a change | 1 | `out_of_scope`; no change made. |
+| Owned executor interrupted with SIGTERM | 1 | `timed_out`; browser stopped. |
+| Owned executor killed with SIGKILL | 1 | `failed`; recovery stopped the browser. |
 
-Para repetir a suíte a partir do repositório, use um Python com `requirements.txt` instalado:
+A separate concurrent MCP request during the interruption scenario returned `busy` without admitting another execution. The orchestrator initiated the battery and read status; Codex handled the browsing decisions.
 
-```sh
-python3 -m unittest discover -s tests -v
-```
+- Combined execution time: approximately **170 seconds**, excluding waits and coordination.
+- Saved-login queries: **31 minutes 46.9 seconds between starts**. The final round was advanced at the user's request; this was not a 55-minute persistence test.
+- Known Codex usage: **571,514 input tokens**, including **422,144 cached** and **149,370 uncached**; **2,088 output tokens**.
+- The two interrupted runs did not report usage. Their consumption is **unknown**, excluded from those totals; it must not be reported as zero. Orchestrator usage and cost savings were not measured.
 
-A instalação nova e a reinstalação com configuração fictícia preservada já tinham sido exercitadas separadamente; veja [o registro de validação](validation.md). A bateria acima passou também no host implantado.
+The first launch exposed a runner compatibility bug before any `navegar` call: it used camelCase MCP result attributes rather than the Python SDK's snake_case attributes. The runner was corrected, checked with a real MCP handshake without model/Cloud, and resumed once. Original evidence was preserved. The final three cases were run by a private continuation after confirming the original runner was idle and cleanup complete; previous results and the global 11-call limit were preserved.
 
-## Falhas reproduzidas e corrigidas
+## Other supporting checks
 
-1. A trava em memória permitia que processos MCP distintos executassem tarefas simultâneas. Agora há uma trava por runtime/host, herdada pelo executor.
-2. O adaptador podia entregar um JSON de sucesso mesmo após saída não zero do executor. Agora confere código de saída, formato e registro de encerramento.
-3. Um descendente podia sobreviver à saída normal do processo Codex. O grupo de processos é encerrado também nessa situação.
-4. Falha ao encerrar o navegador podia manter uma resposta `requires_auth` como se a tarefa tivesse terminado normalmente. Falhas de limpeza agora prevalecem e bloqueiam a próxima tarefa.
-5. Uma falha anterior à criação ainda disparava um comando de fechar sessão. O ciclo de vida agora distingue navegador não iniciado, criação, sessão identificada e encerramento.
+Earlier real calls confirmed public navigation, saved authentication, and refusal to publish: **3/3 passed**, all browsers stopped. They are additional evidence, not part of the 11 cases above.
 
-Esses cinco casos foram observados falhando na versão anterior; passaram depois das correções. A suíte adicional cobre os limites e caminhos de recuperação relacionados.
+The installer was exercised in a new isolated directory with spaces in its path, real dependencies, and an already authenticated Codex. Real MCP handshake and a missing-configuration response worked without model/Cloud. Reinstallation preserved fictitious private settings, did not save environment secrets, and rejected an incompatible fake CLI. The installer was also applied to the existing Grok runtime, preserving its private configuration and followed by one successful public task. **This was not an independent person's installation or a fresh Codex authentication.**
 
-## Três chamadas reais pelo Grok
+A supporting suite passed **21/21 checks** in development and on Grok Linux. It used real processes with substitute model/provider implementations to exercise locks, cancellation, timeouts, invalid output, descendant cleanup, and uncertain creation. These checks supplement the real use cases; they do not establish Cloud behavior. Run with `python3 -m unittest discover -s tests -v` if needed for development.
 
-O Maestro chamou `navegar` uma vez por cenário, sequencialmente, sem observar os cliques e sem repetição automática. Somente resultados finais e métricas foram retornados.
+## Current operating limits
 
-| Caso | Resultado esperado/observado | Tempo do executor | Entrada | Cache | Sem cache | Saída | Navegador encerrado |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| Página pública → link → destino | `succeeded`; Example Domains / IANA | 21,8 s | 75.341 | 44.160 | 31.181 | 273 | Sim |
-| Consulta em painel com login salvo | `succeeded`; autenticação preservada | 13,4 s | 48.383 | 29.568 | 18.815 | 166 | Sim |
-| Pedido de alteração/publicação | `out_of_scope`; alteração recusada | 12,6 s | 29.746 | 14.592 | 15.154 | 136 | Sim |
-| **Total** | **3/3 aprovados** | **47,8 s** | **153.470** | **88.320** | **65.150** | **575** | **3/3** |
+- One account/profile and one runtime on one host. Locks do not coordinate different hosts or runtime directories.
+- The current session identification relies on an unambiguous newly created Cloud browser. Avoid unrelated concurrent session creation with the same Cloud account during a task. Ambiguity must block continuation.
+- Total host loss and provider unavailability during cleanup have **not yet been exercised in real integration**. The intended behavior is to retain the pending marker, block new work, and require operator recovery; immediate shutdown cannot be promised.
+- Independent clean installation and a full update/rollback rehearsal remain pending.
+- Read/research rules and allowed commands are not security isolation. Data-changing business workflows and multiuser deployments are outside the validated scope.
+- Correct navigation in these examples does not establish correctness for every website or answer.
 
-Não houve `cleanup_pending`. Tempos são somados das execuções; não incluem instalação e coordenação do Maestro. Tokens são do Codex; o consumo do Maestro não foi medido. Resultados de conta, IDs de execução e registros completos ficaram privados.
+If cleanup is uncertain, follow [operator recovery](install.md#unconfirmed-cleanup). Do not retry automatically or delete state to bypass the block.
 
-## Onze execuções reais adicionais no Grok
+## Distribution
 
-Em 15/10/2026, o runner com a correção `bd29ef8` conduziu três rodadas pelo MCP Command real, Codex CLI e Browser Use Cloud no computador do Grok. **11/11 casos passaram**, com encerramento confirmado tanto pela ponte quanto pela API do provedor em todos os casos. O Maestro iniciou o trabalho e leu status a pedido do usuário; não acompanhou cliques.
-
-A primeira tentativa parou no handshake MCP antes de chamar `navegar`: o runner usava `serverInfo` e `isError`, enquanto o SDK Python instalado expõe `server_info` e `is_error`. A correção foi verificada com um handshake MCP real sem modelo/Cloud antes da retomada. O runner passou a guardar a exceção completa em arquivo privado. Os registros da tentativa original foram preservados.
-
-| Rodada | Caso | Status esperado e observado | Tempo aproximado | Entrada | Cache | Sem cache | Saída |
-| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| 1 | `public_link` | `succeeded` | 20.8 s | 75.393 | 59.136 | 16.257 | 280 |
-| 1 | `public_search` | `succeeded` | 24.5 s | 105.268 | 85.376 | 19.892 | 309 |
-| 1 | `saved_login` | `succeeded` | 16.5 s | 29.861 | 14.720 | 15.141 | 136 |
-| 1 | `SIGTERM` | `timed_out` | 3.8 s | Desconhecido | Desconhecido | Desconhecido | Desconhecido |
-| 1 | `SIGKILL` | `failed` | 3.0 s | Desconhecido | Desconhecido | Desconhecido | Desconhecido |
-| 2 | `missing_information` | `succeeded` | 14.9 s | 45.154 | 29.568 | 15.586 | 165 |
-| 2 | `refuse_publication` | `out_of_scope` | 12.4 s | 29.744 | 14.592 | 15.152 | 128 |
-| 2 | `public_link` | `succeeded` | 20.0 s | 75.686 | 59.520 | 16.166 | 378 |
-| 3 | `saved_login` | `succeeded` | 13.3 s | 29.862 | 14.720 | 15.142 | 133 |
-| 3 | `public_search` | `succeeded` | 22.4 s | 105.258 | 85.376 | 19.882 | 312 |
-| 3 | `public_link` | `succeeded` | 18.4 s | 75.288 | 59.136 | 16.152 | 247 |
-
-**Uso conhecido:** 571.514 tokens de entrada, sendo 422.144 em cache e 149.370 sem cache; 2.088 de saída. As duas interrupções não reportaram uso e estão excluídas das somas; seu consumo é desconhecido. O limite de 250.000 tokens sem cache foi respeitado no uso medido, mas não permite afirmar um teto absoluto incluindo essas interrupções. O consumo do Maestro não foi medido.
-
-Os casos somaram aproximadamente **170 s de execução**. As duas primeiras rodadas foram iniciadas às 16:34 e 16:54 BRT. A pedido do usuário, a terceira foi antecipada de 17:29 para **17:07 BRT**: o runner ocioso foi encerrado após confirmar ausência de tarefa/limpeza pendente, e uma continuação privada executou somente os três casos restantes. Os oito resultados anteriores e seus relatórios foram preservados; a continuação manteve o limite global de 11 execuções admitidas e o consumo conhecido acumulado.
-
-O login salvo funcionou nas duas consultas, separadas por **31 min 46,9 s entre os inícios** (aproximadamente 31 min 30,4 s entre o fim da primeira e o início da segunda). Isso não constitui o teste originalmente previsto de 55 minutos. O período total do início original até o fim foi de aproximadamente 33 min 27 s, incluindo as esperas.
-
-**Interrupções reais:** SIGTERM no executor próprio devolveu `timed_out`; SIGKILL devolveu `failed`; ambos passaram porque esses eram os resultados esperados e o navegador foi parado. Uma chamada MCP concorrente real recebeu `busy`, sem admitir outra execução. Essa evidência permanece no relatório original; não foi copiada pelo wrapper para o relatório da continuação. Não houve `cleanup_pending` nem marcador `active-run.json` ao final. Nenhuma alteração nos sites ou novo login foi feito.
-
-Os relatórios completos, identificação dos processos/sessões e wrapper de continuação permanecem privados. Esta bateria adicional não repetiu a suíte de testes unitários. Não foram alterados a chave, o perfil, o conector de produção ou a visibilidade do repositório.
-
-## Limites que continuam explícitos
-
-- A trava coordena apenas processos usando a mesma pasta no mesmo host; não coordena máquinas/instalações distintas.
-- Se a criação remota não devolver uma identidade, se o provedor ficar indisponível ou se todo o host morrer, não é possível prometer encerramento imediato. A ponte conserva um marcador e bloqueia outra tarefa até conferência do operador. Veja [encerramento incerto](usage.md#encerramento-incerto).
-- Foram interrompidos somente executores próprios em duas chamadas Cloud reais (SIGTERM e SIGKILL), com parada do navegador confirmada. Indisponibilidade do provedor, perda total do host e falhas destrutivas de infraestrutura não foram provocadas.
-- A identificação inicial depende de uma nova sessão inequívoca na conta Cloud. Evite criar sessões externas simultâneas durante a tarefa; múltiplas sessões novas tornam a identificação incerta e bloqueiam a continuação.
-- Leitura/pesquisa é o escopo atual. Regras do modelo e a lista de comandos não constituem isolamento contra um executor malicioso ou garantia absoluta de que todo clique seja semanticamente inofensivo. Alterações em dados empresariais continuam fora do escopo.
-- Os resultados cobrem os casos listados; não são uma medição estatística de confiabilidade geral.
-
-O comportamento de criação desconhecida e de fechamento pendente também é descrito na [documentação oficial do agent-browser](https://github.com/vercel-labs/agent-browser#browser-use). A ponte trata esses casos como pendência operacional, não como sucesso nem motivo de repetição automática.
-
-## Antes de publicar
-
-Uma busca automatizada por padrões de tokens/chaves, chaves privadas, URLs de controle e IDs reais de perfil em 75 blobs do histórico não encontrou correspondências. Isso é uma checagem direcionada, não prova de ausência de qualquer informação sensível. Novos registros deste relatório foram mantidos sem dados da conta.
-
-O repositório permanece privado. Falta escolher uma licença de distribuição e autorizar a mudança de visibilidade. Não foi atribuída uma licença nem publicada uma versão durante esta bateria.
+The repository remains private. No distribution license has been selected and no public release is claimed here. Before sharing logs or publishing, inspect the actual changes for secrets and account data; a previous targeted history scan is not a guarantee for new files.

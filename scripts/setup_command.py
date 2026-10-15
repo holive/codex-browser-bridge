@@ -81,7 +81,7 @@ def main():
     config_path.write_text(json.dumps(config, indent=2) + '\n')
     config_path.chmod(0o600)
     (root / 'agent-browser.json').write_text(json.dumps({
-        'provider': 'browseruse', 'autoConnect': False, 'restoreSave': 'never',
+        'autoConnect': False, 'restoreSave': 'never',
         'idleTimeout': '15m', 'ignoreHttpsErrors': False, 'allowFileAccess': False, 'plugins': []}))
     wrapper = root / 'commands/agent-browser'
     wrapper.write_text('#!/bin/sh\nexec ' + shlex.quote(str(python)) + ' ' + shlex.quote(str(root / 'app/browser_cli.py')) + ' "$@"\n')

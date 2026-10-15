@@ -60,27 +60,22 @@ class Workspace(unittest.TestCase):
         body += 'print(json.dumps({"type":"turn.completed","usage":{"input_tokens":1,"cached_input_tokens":0,"output_tokens":1}}))\n'
         self.config['codex_bin'] = script(self.root / 'fake-codex', body)
 
-    def run_executor(self, status='succeeded', close_fails=False, start_fails=False, list_fails=False, descendant=False, hang=False, api_fails=None, model_timeout=180):
+    def run_executor(self, status='succeeded', close_fails=False, create_timeout=False, create_fails=False, descendant=False, hang=False, api_fails=None, model_timeout=180):
         self.fake_model(status, hang, descendant)
         self.actions = []
         self.stopped = False
         def browser(args):
             self.actions.append(args[0])
-            if args[0] == 'open':
-                if start_fails:
-                    raise TimeoutError('Unknown provider creation outcome')
             if args[0] == 'close':
                 if close_fails:
                     raise RuntimeError('synthetic close failure')
-                self.stopped = True
             return 'https://example.com/' if args[:2] == ['get', 'url'] else ''
-        count = 0
-        def browsers():
-            nonlocal count
-            count += 1
-            if list_fails:
-                raise ConnectionError('synthetic preflight failure')
-            return [] if count == 1 else [{'id': 'owned', 'status': 'active'}]
+        def create_browser():
+            if create_timeout:
+                raise TimeoutError('Unknown provider creation outcome')
+            if create_fails:
+                raise ConnectionError('synthetic creation failure')
+            return {'id': 'owned', 'status': 'active', 'cdpUrl': 'wss://synthetic.invalid/cdp'}
         def api(path, method='GET', body=None):
             if api_fails if api_fails is not None else close_fails:
                 raise ConnectionError('synthetic provider outage')
@@ -88,15 +83,17 @@ class Workspace(unittest.TestCase):
                 self.stopped = True
             return {'id': 'owned', 'status': 'stopped' if self.stopped else 'active'}
         with patch.multiple(executor, ROOT=self.root, CONFIG=self.config, STATE=self.state,
-                            SESSION='synthetic-session', browser=browser, browsers=browsers, api=api):
+                            SESSION='synthetic-session', browser=browser, create_browser=create_browser, api=api):
             return executor.execute({'task': 'Read title', 'url': 'https://example.com'}, model_timeout=model_timeout)
 
 
 class ExecutorFaults(Workspace):
-    def test_preflight_failure_does_not_close_a_session(self):
-        result = self.run_executor(list_fails=True)
+    def test_creation_failure_without_identity_does_not_close_a_session(self):
+        result = self.run_executor(create_fails=True)
         self.assertEqual(result['status'], 'failed')
         self.assertNotIn('close', self.actions)
+        self.assertTrue(result['cleanup_pending'])
+        self.assertFalse(result['browser_closed'])
 
     def test_cleanup_failure_overrides_requires_auth(self):
         result = self.run_executor(status='requires_auth', close_fails=True)
@@ -130,7 +127,7 @@ class ExecutorFaults(Workspace):
         self.assertTrue(result['browser_closed'])
 
     def test_creation_outcome_unknown_is_not_claimed_closed(self):
-        result = self.run_executor(start_fails=True)
+        result = self.run_executor(create_timeout=True)
         self.assertTrue(result['cleanup_pending'])
         self.assertFalse(result['browser_closed'])
         self.assertEqual(json.loads((self.state/'lifecycle.json').read_text())['phase'],'cleanup_pending')
@@ -150,17 +147,15 @@ class ExecutorFaults(Workspace):
         (self.root/'config.json').write_text(json.dumps(self.config))
         code="""import json,signal,sys,types
 sys.path.insert(0,SOURCE)
-fake=types.ModuleType('browser');counter=0;stopped=False
+fake=types.ModuleType('browser');stopped=False
 def call(args,session):
- global stopped
- if args[0]=='close':stopped=True
  return 'https://example.com/' if args[:2]==['get','url'] else ''
-def browsers():
- global counter
- counter+=1
- return [] if counter==1 else [{'id':'owned','status':'active'}]
-def api(*args):return {'status':'stopped' if stopped else 'active'}
-fake.call=call;fake.browsers=browsers;fake.api=api;sys.modules['browser']=fake
+def create_browser():return {'id':'owned','status':'active','cdpUrl':'wss://synthetic.invalid/cdp'}
+def api(path,method='GET',body=None):
+ global stopped
+ if method=='PATCH':stopped=True
+ return {'status':'stopped' if stopped else 'active'}
+fake.call=call;fake.create_browser=create_browser;fake.api=api;sys.modules['browser']=fake
 import executor
 signal.signal(signal.SIGTERM,executor.cancel)
 print(json.dumps(executor.execute({'task':'read','url':'https://example.com'})),flush=True)
