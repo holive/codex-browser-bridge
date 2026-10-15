@@ -27,12 +27,12 @@ Esta é uma **POC pessoal de leitura e pesquisa**: pode navegar e preencher busc
 
 O caminho ativo foi validado com a tarefa pública de example.com até a IANA: sucesso em cerca de 18 segundos, com o navegador encerrado antes da resposta. Isso confirma essa conexão e esse caso de uso; não comprova confiabilidade geral, suporte multiusuário ou economia quantitativa de tokens do Maestro. Veja [o registro da validação](docs/validation.md).
 
-O Mac e o túnel foram desativados, e o antigo conector HTTPS foi retirado do Maestro. Não participam da instalação atual. Uma VPS independente é uma opção futura, sem implantação validada.
+Uma VPS independente é uma opção futura, sem implantação validada.
 
 ## Documentação
 
 - [Uso](docs/usage.md): pedidos, login e tratamento dos retornos.
-- [Guia técnico](docs/technical.md): instalação ativa, interface MCP, implementação, limites e opção histórica no Mac.
+- [Guia técnico](docs/technical.md): instalação ativa, interface MCP, implementação e limites.
 - [Arquitetura](docs/architecture.mmd): diagrama das conexões e responsabilidades.
 - [Validação](docs/validation.md): o que foi observado e o que ainda não foi testado.
 - [VPS opcional](docs/vps.md): alternativa futura de hospedagem.

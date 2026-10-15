@@ -6,7 +6,7 @@ Envie ao Maestro uma URL completa, uma tarefa concreta e peça apenas o resultad
 
 > Maestro, use a ponte para abrir https://news.ycombinator.com/ e retornar os títulos e links das três primeiras notícias. Aguarde e entregue apenas o resultado final.
 
-Peça ao Maestro que use `navegar(tarefa, url)` do conector **`codex-browser-command`** (Command/stdio). Esse é o único conector ativo desta ponte. O antigo conector HTTPS foi retirado, e os serviços da ponte e do túnel no Mac foram desligados e desabilitados.
+Peça ao Maestro que use `navegar(tarefa, url)` do conector **`codex-browser-command`** (Command/stdio). Esse é o único conector ativo desta ponte.
 
 As instruções específicas de outros sites podem ficar nas skills/configuração do orquestrador e ser enviadas na tarefa. Não precisam de uma ferramenta MCP por site.
 
@@ -29,4 +29,4 @@ Autenticar no navegador comum do computador não prepara o perfil remoto da pont
 - `out_of_scope`: pedido exige uma alteração que este MVP não permite.
 - `failed` / `timed_out`: leia o erro e decida se quer tentar novamente. Não há repetição automática.
 
-O computador do Grok e o acesso ao Codex e Browser Use precisam estar disponíveis para o conector Command. O Mac e o túnel não participam do fluxo atual. Use uma conta/perfil por instalação neste MVP; múltiplos usuários, isolamento de contas e publicação de sites não foram implementados.
+O computador do Grok e o acesso ao Codex e Browser Use precisam estar disponíveis para o conector Command. Use uma conta/perfil por instalação neste MVP; múltiplos usuários, isolamento de contas e publicação de sites não foram implementados.
