@@ -33,6 +33,7 @@ def diagnose(root):
     except (OSError, ValueError):
         config = {}
         add('private_config', False, 'Run setup; if config.json exists, repair its JSON without discarding secrets.')
+    add('host_locking', os.name == 'posix', 'Use a POSIX host; the deployed environment is Linux.')
     add('python', sys.version_info >= (3, 11), 'Run setup with Python 3.11+.')
     try:
         from mcp.server import MCPServer
@@ -61,6 +62,7 @@ def diagnose(root):
             add('codex_auth', code == 0, 'Authenticate Codex on this host using its supported login flow, then rerun --check.')
     for env_key, config_key in (('BROWSER_USE_API_KEY', 'browser_use_api_key'), ('BROWSER_USE_PROFILE_ID', 'profile_id')):
         add(env_key, bool(os.environ.get(env_key) or config.get(config_key)), 'Provide ' + env_key + ' privately to the MCP process, then rerun --check in the same environment.')
+    add('previous_run_clear', not (root / 'active-run.json').exists(), 'An active or unconfirmed run exists. Wait for its final result, or inspect the private journal and Cloud session before clearing it.')
     add('launcher', (root / 'run-command.sh').is_file() and os.access(root / 'run-command.sh', os.X_OK), 'Rerun setup to generate the command launcher.')
     return {'status': 'ready' if all(c['ok'] for c in checks) else 'requires_setup',
             'checks': checks, 'warnings': warnings,

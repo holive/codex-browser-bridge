@@ -25,7 +25,7 @@ O resultado de uma execução contém `status`, `result`, `final_url`, `error`, 
 
 Estados possíveis: `succeeded`, `failed`, `requires_auth`, `out_of_scope`, `timed_out`, `busy` e `requires_setup`. Veja [como lidar com os retornos](usage.md#erros-e-escopo).
 
-Uma tarefa por vez; sem fila, polling ou repetição automática. O Codex tem prazo de 180 segundos; preparação e encerramento acrescentam tempo. O adaptador aguarda até 300 segundos e tenta cancelar/encerrar a execução em caso de falha. Progresso, observações e logs ficam no executor; o MCP entrega somente o resultado final.
+Uma tarefa por runtime/host, protegida por trava de arquivo herdada pelo executor, inclusive entre processos MCP diferentes; sem fila, polling ou repetição automática. O Codex tem prazo de 180 segundos; preparação e encerramento acrescentam tempo. O adaptador aguarda até 300 segundos, dá até 60 segundos para o executor terminar após cancelamento e tenta recuperar o encerramento pelo registro privado se ele falhar. Chamadas de limpeza ao provedor também têm limites próprios. Progresso, observações e logs ficam no executor; o MCP entrega somente o resultado final.
 
 ## Implementação e limites
 
@@ -33,6 +33,7 @@ Uma tarefa por vez; sem fila, polling ou repetição automática. O Codex tem pr
 | --- | --- |
 | `app/server.py` | Contrato MCP stdio, uma execução por vez e entrega final. |
 | `app/diagnostics.py` | Verifica requisitos e compatibilidade básica das CLIs, sem modelo ou navegador. |
+| `app/lifecycle.py` | Registra criação/encerramento e recupera a limpeza da sessão identificada. |
 | `app/executor.py` | Inicia Codex, registra métricas da execução e encerra o navegador. |
 | `app/browser.py` e `app/browser_cli.py` | Conexão com Browser Use Cloud e comandos permitidos. |
 | `app/navigation_guard.py` | Verificação de URLs de navegação. |
@@ -49,3 +50,9 @@ A política do modelo e a lista de comandos reduzem as operações expostas; nã
 Chaves API, autenticação Codex, IDs de perfis reais, cookies, logs, prompts de tarefas, resultados, capturas e dados pessoais ficam fora do repositório. O `.gitignore` exclui os caminhos comuns; revise os arquivos antes de qualquer commit.
 
 Não copie a pasta privada inteira para o GitHub. A instalação Command depende do host do Grok, da autenticação Codex e do acesso ao Browser Use.
+
+## Falhas e limites do supervisor
+
+O Codex e seus descendentes no mesmo grupo são encerrados ao terminar ou exceder o prazo. O MCP confere código de saída, formato da resposta e confirmação no registro de encerramento; não encaminha sucesso apenas porque recebeu um JSON. Se um processo MCP morrer abruptamente, o executor conserva a trava enquanto estiver ativo. O marcador persistente impede outra execução quando não há confirmação de limpeza.
+
+Interrupção total do host e criação Cloud com resultado desconhecido não permitem prometer encerramento imediato. Nesses casos a ponte bloqueia novas tarefas e exige conferência do operador; consulte [encerramento incerto](usage.md#encerramento-incerto). Isso também se aplica a uma indisponibilidade do provedor durante a limpeza. Não há coordenação distribuída, sandbox contra um executor malicioso ou garantia semântica de todas as respostas. O ambiente implantado é Linux; a trava exige POSIX.

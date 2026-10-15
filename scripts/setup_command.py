@@ -31,6 +31,8 @@ def main():
     parser.add_argument('--codex', help='Use an existing Codex executable')
     parser.add_argument('--agent-browser', help='Use an existing agent-browser executable')
     args = parser.parse_args()
+    if os.name != 'posix':
+        parser.error('This executor requires a POSIX host; the deployed environment is Linux.')
     if sys.version_info < (3, 11):
         parser.error('Python 3.11+ is required; use a compatible Python to run setup.')
     root = Path(args.home).expanduser().resolve()

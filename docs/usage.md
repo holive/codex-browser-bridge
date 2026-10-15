@@ -23,10 +23,18 @@ Autenticar no navegador comum do computador não prepara o perfil remoto da pont
 
 ## Erros e escopo
 
-- `busy`: já existe uma tarefa em execução. Aguarde a conclusão antes de enviar outra.
+- `busy`: outra tarefa/processo usa o runtime, ou uma limpeza anterior ficou pendente. Aguarde uma tarefa ativa; se houver `cleanup_pending`, siga o procedimento abaixo.
 - `requires_setup`: chave ou perfil não chegou ao processo MCP; configure-os no ambiente privado, fora da tarefa.
 - `requires_auth`: prepare ou renove o login fora do MCP.
 - `out_of_scope`: pedido exige uma alteração que este MVP não permite.
 - `failed` / `timed_out`: leia o erro e decida se quer tentar novamente. Não há repetição automática.
 
 O computador do Grok e o acesso ao Codex e Browser Use precisam estar disponíveis para o conector Command. Use uma conta/perfil por instalação neste MVP; múltiplos usuários, isolamento de contas e publicação de sites não foram implementados.
+
+## Encerramento incerto
+
+`cleanup_pending: true` significa que a ponte não confirmou o encerramento. A resposta não deve ser tratada como sucesso nem repetida automaticamente. O runtime fica bloqueado mesmo após reiniciar o MCP.
+
+O operador deve ler `active-run.json` e o `lifecycle.json` da execução no armazenamento privado, verificar se ainda há executor/modelo ativo e encerrar a sessão identificada no Cloud. Se a criação não devolveu um ID, confira o painel Cloud e os horários; não adivinhe nem encerre sessões alheias. Só depois de confirmar ausência de processos da tarefa e de navegador ativo deve arquivar o marcador `active-run.json` para liberar o runtime. Guarde os registros para diagnóstico. Não publique IDs, URLs de controle ou valores da configuração.
+
+A trava é por pasta de runtime, no mesmo host. Ela não coordena instalações em máquinas/pastas diferentes. Use um único runtime para os bots e evite sessões externas simultâneas com a conta/perfil durante as tarefas.

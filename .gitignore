@@ -33,3 +33,8 @@ cookies*
 *.credentials.json
 downloads/
 screenshots/
+
+# Private supervisor state
+active-run.json
+executor.lock
+lifecycle.json
