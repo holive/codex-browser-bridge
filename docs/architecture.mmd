@@ -6,8 +6,8 @@ flowchart LR
     G --> C["Encerrar navegador<br/>Resultado final e métricas"]
     C -->|somente resultado final| O
     G -.-> L["Configuração e evidências privadas<br/>Fora do repositório"]
-    G --> R["POC VALIDADA<br/>Tarefa pública: 18,0 s; succeeded<br/>browser_closed: true"]
+    G --> R["VERSÃO NOVA APLICADA<br/>Tarefa pública: 24,0 s; succeeded<br/>browser_closed: true"]
     V["VPS independente: opcional no futuro<br/>Não necessária para esta POC"]
-    S["SIMULADO: instalação repetível<br/>Dependências e lançador<br/>Preserva configuração privada"] --> G
+    S["APLICADO NO GROK: instalador repetível<br/>Dependências e lançador<br/>Preserva configuração privada"] --> G
     S --> D["VALIDADO: diagnóstico local --check<br/>Configuração preservada ao reinstalar<br/>Sem modelo ou navegador"]
-    D --> F["Na próxima instalação:<br/>uma tarefa real confirma o fluxo"]
+    D --> F["CONFIRMADO: uma única tarefa real<br/>Chave e perfil preservados"]

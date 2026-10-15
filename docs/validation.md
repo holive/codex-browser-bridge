@@ -19,3 +19,15 @@ Em 15/10/2026, o novo instalador foi executado em uma pasta privada nova, com es
 A checagem usou o SDK MCP real para iniciar o lançador, fazer handshake e listar a ferramenta única `navegar`. Uma chamada sem chave/perfil retornou `requires_setup`, sem abrir navegador ou iniciar o modelo. Em seguida, uma reinstalação preservou configuração privada fictícia de chave, perfil, modelo e esforço; um valor fictício recebido por variável de ambiente não foi gravado nem mostrado. Um executável Codex fictício com interface alterada foi corretamente recusado pelo diagnóstico.
 
 A ausência de Node/npm também produziu uma orientação explícita antes da instalação. O teste cobre preparação e diagnóstico no ambiente isolado; não simula a interface de cadastro do Grok, não autentica uma conta nova e não valida a recuperação dos logins Cloud. Não houve novas chamadas ao modelo ou ao Browser Use Cloud. A instalação em uso no Grok não foi modificada nesta rodada.
+
+## Aplicação no computador do Grok — confirmação única
+
+Em 15/10/2026, o commit `0a1f6c0` foi aplicado ao runtime existente no computador do Grok. O instalador foi executado e o conector `codex-browser-command` recarregado. O Maestro confirmou que a chave e o ID do perfil foram preservados, sem expor os valores.
+
+Após o diagnóstico, foi feita uma única chamada `navegar`: `https://example.com` → “Learn more” → **Example Domains**, `https://www.iana.org/help/example-domains`.
+
+- Status: `succeeded`; `browser_closed: true`.
+- Tempo do executor: cerca de 24,0 s.
+- Tokens Codex: entrada 75.685; cache 59.648; sem cache 16.037; saída 317.
+
+Não foi repetida a bateria anterior. Esta chamada confirma a aplicação da versão nova e a navegação pública pelo conector existente; não verifica login em sites ou recuperação após perda completa do host.
