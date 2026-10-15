@@ -9,6 +9,7 @@ from pathlib import Path
 import signal
 import sys
 import time
+import traceback
 from urllib.parse import urlparse
 
 from mcp import ClientSession, StdioServerParameters
@@ -26,7 +27,7 @@ def plan(auth_url):
 
 
 def payload(reply):
-    if reply.isError:
+    if reply.is_error:
         raise RuntimeError('MCP tool error')
     for item in reply.content:
         if item.type == 'text':
@@ -45,8 +46,13 @@ def atomic_json(path, value):
 def children(parent, script):
     """Identify only direct child processes with the exact expected application script."""
     result = []
-    child_file = Path('/proc') / str(parent) / 'task' / str(parent) / 'children'
-    for value in child_file.read_text().split():
+    child_ids = set()
+    for child_file in (Path('/proc') / str(parent) / 'task').glob('*/children'):
+        try:
+            child_ids.update(child_file.read_text().split())
+        except FileNotFoundError:
+            pass
+    for value in child_ids:
         try:
             args = (Path('/proc') / value / 'cmdline').read_bytes().split(b'\0')
             if os.fsencode(str(script)) in args:
@@ -85,7 +91,7 @@ class Battery:
             async with stdio_client(params, errlog=errors) as (read, write):
                 async with ClientSession(read, write) as session:
                     initialized = await session.initialize()
-                    if initialized.serverInfo.name != 'codex-browser-bridge':
+                    if initialized.server_info.name != 'codex-browser-bridge':
                         raise RuntimeError('Unexpected MCP server identity')
                     yield session
 
@@ -158,11 +164,11 @@ class Battery:
         self.current_executor = None
         self.write()
         async with self.client() as client:
-            request = asyncio.create_task(client.call_tool('navegar', {'tarefa': case['task'], 'url': case['url']}))
             servers = children(os.getpid(), self.home / 'app/server.py')
             if len(servers) != 1:
                 raise RuntimeError('MCP child not uniquely identified')
             self.current_server = servers[0]
+            request = asyncio.create_task(client.call_tool('navegar', {'tarefa': case['task'], 'url': case['url']}))
             triggered = await self.inject(case, request)
             result = payload(await asyncio.wait_for(request, timeout=min(480, max(1, self.deadline - time.time()))))
         run_id = result.get('run_id')
@@ -272,7 +278,12 @@ def main():
     try:
         asyncio.run(battery.run())
     except BaseException as exc:
-        battery.report.update(status='stopped', error_type=type(exc).__name__)
+        (battery.out / 'exception.log').write_text(''.join(traceback.format_exception(exc)))
+        def leaf_types(error):
+            if isinstance(error, BaseExceptionGroup):
+                return [name for child in error.exceptions for name in leaf_types(child)]
+            return [type(error).__name__]
+        battery.report.update(status='stopped', error_type=type(exc).__name__, error_causes=leaf_types(exc), error_log='exception.log')
         battery.emergency_cleanup()
         # Never suppress pending cleanup, remove its marker, or start a replacement session.
         # Private journals remain available for the operator if a transport/host failure intervenes.
