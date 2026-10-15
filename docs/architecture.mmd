@@ -1,12 +1,13 @@
 flowchart LR
-    K["Skills e instruções de sites<br/>Camada externa ao conector"] -.-> O["Orquestrador<br/>Uma tarefa e URL"]
-    O -->|MCP HTTP| T["Túnel com endereço fixo"]
-    O -->|MCP Command stdio| M
-    T --> M["MCP navegar<br/>Uma execução por vez"]
-    M --> E["Executor no Mac<br/>Codex CLI"]
-    E <-->|ações e observações| B["agent-browser<br/>Browser Use Cloud"]
+    K["Skills e instruções de sites<br/>Camada externa ao conector"] -.-> O["Maestro / orquestrador<br/>Uma tarefa e URL"]
+    O -->|MCP Command stdio| G["VALIDADO: executor no computador do Grok<br/>navegar → Codex CLI<br/>Sem Mac ou túnel nesse caminho"]
+    O -->|Alternativa MCP HTTPS| T["Túnel fixo → executor no Mac<br/>Instalação preservada"]
+    G <-->|ações e observações| B["agent-browser<br/>Browser Use Cloud"]
+    T <--> B
     P["Perfil persistente<br/>Login manual separado"] -.-> B
-    E --> C["Encerrar navegador<br/>Conferir resultado e registrar métricas"]
+    G --> C["Encerrar navegador<br/>Resultado final e métricas"]
+    T --> C
     C -->|somente resultado final| O
-    E -.-> L["Configuração e evidências privadas<br/>Fora do repositório"]
-    M -.-> V["Futuro: mesmo executor em VPS<br/>Ainda não implantado"]
+    G -.-> L["Configuração e evidências privadas<br/>Fora do repositório"]
+    G -.-> V["Futuro: VPS independente<br/>Ainda não implantada"]
+    G --> R["Tarefa pública validada<br/>18,0 s; succeeded<br/>browser_closed: true"]

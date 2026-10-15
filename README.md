@@ -3,7 +3,7 @@
 MCP privado para um orquestrador delegar navegação de leitura e pesquisa ao Codex CLI, usando Browser Use Cloud. O orquestrador envia uma tarefa e recebe um único resultado final depois do encerramento do navegador. Progresso, observações e logs ficam no executor.
 
 ```text
-Orquestrador → MCP HTTPS → executor Codex → Browser Use Cloud
+Orquestrador → MCP Command (stdio) ou HTTPS → executor Codex → Browser Use Cloud
 Orquestrador ← resultado final ← navegador encerrado
 ```
 
@@ -36,7 +36,7 @@ Veja [o guia de uso](docs/usage.md), [a arquitetura](docs/architecture.mmd) e [a
 
 Escopo atual: abrir páginas públicas HTTP(S), navegar por links/menus, rolar e preencher buscas, reutilizando um perfil de login. Edição de dados, publicação, mensagens, compras e exclusões ficam fora do escopo. A política do modelo e a lista de comandos reduzem as operações expostas; não constituem isolamento de segurança para múltiplos clientes. A checagem genérica confere execução e URL final, sem provar semanticamente todas as respostas.
 
-O Mac precisa estar ligado, acordado, com a sessão do usuário iniciada e conectado. O navegador remoto é efêmero; o perfil de autenticação é persistente, conforme as regras de cada site.
+Na instalação HTTPS do Mac, ele precisa estar ligado, acordado, com a sessão do usuário iniciada e conectado. O conector Command executa no computador do Grok e dispensa o Mac. O navegador remoto é efêmero; o perfil de autenticação é persistente, conforme as regras de cada site.
 
 ## Instalação no Mac
 
@@ -75,4 +75,6 @@ A instalação em uso guarda esses dados localmente. Não é preciso apagá-los 
 
 A versão limpa está instalada no Mac e expõe somente `navegar`. Endereço, credenciais e perfil existentes foram preservados. Uma chamada MCP com Codex e Browser Use Cloud reais confirmou o resultado e o encerramento em 36,9 segundos. A ferramenta antiga específica de site foi removida.
 
-MVP para uso pessoal de leitura/pesquisa. A migração para VPS está [documentada como próximo passo](docs/vps.md), sem implantação ou validação de VPS nesta etapa.
+O conector `codex-browser-command` também foi instalado e validado no computador do Grok Bot: Codex autenticado, Browser Use Cloud real, tarefa pública concluída em cerca de 18 segundos e navegador encerrado. Esse caminho usa MCP Command/stdio e dispensa o Mac e o túnel. A instalação HTTPS do Mac continua como alternativa.
+
+MVP para uso pessoal de leitura/pesquisa. Uma VPS independente permanece [documentada como opção futura](docs/vps.md), sem implantação nesta etapa.
