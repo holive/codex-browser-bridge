@@ -22,6 +22,7 @@ Autenticar no navegador comum do computador não prepara o perfil remoto da pont
 ## Erros e escopo
 
 - `busy`: já existe uma tarefa em execução. Aguarde a conclusão antes de enviar outra.
+- `requires_setup`: chave ou perfil não chegou ao processo MCP; configure-os no ambiente privado, fora da tarefa.
 - `requires_auth`: prepare ou renove o login fora do MCP.
 - `out_of_scope`: pedido exige uma alteração que este MVP não permite.
 - `failed` / `timed_out`: leia o erro e decida se quer tentar novamente. Não há repetição automática.

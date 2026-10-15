@@ -18,7 +18,7 @@ Uma ferramenta: `navegar(tarefa: str, url: str)`.
 }
 ```
 
-O resultado contém `status`, `result`, `final_url`, `error`, `metrics`, `browser_closed` e `run_id`. Estados: `succeeded`, `failed`, `requires_auth`, `out_of_scope`, `timed_out` ou `busy`.
+O resultado contém `status`, `result`, `final_url`, `error`, `metrics`, `browser_closed` e `run_id`. Estados: `succeeded`, `failed`, `requires_auth`, `out_of_scope`, `timed_out`, `busy` ou `requires_setup`.
 
 Uma tarefa por vez; sem fila, polling ou repetição automática. O Codex tem prazo de 180 segundos; preparação e encerramento acrescentam tempo. O adaptador aguarda até 300 segundos e tenta cancelar/encerrar a execução em caso de falha.
 
@@ -51,6 +51,19 @@ O código fica neste repositório. Configuração privada, dependências e logs 
 5. Cadastre o MCP Remote HTTPS no orquestrador usando o hostname e caminho secretos da sua configuração. Não coloque a URL completa em documentação, commits ou mensagens públicas.
 
 O nome MCP permanece `codex-cloud-pilot` por compatibilidade com o conector já cadastrado. Após atualizar ferramentas, o cliente pode precisar recarregar seu catálogo; um parâmetro de revisão de esquema na URL pode invalidar o cache, mantendo host, caminho e credencial.
+
+
+## MCP por comando no computador do Grok
+
+O mesmo servidor oferece `--transport stdio`. O orquestrador inicia o processo e aguarda o retorno da ferramenta; esse caminho não usa túnel, hostname público ou serviço HTTP.
+
+1. Guarde o código em uma pasta durável do computador remoto e prepare uma pasta privada para o runtime.
+2. Crie `.venv` nessa pasta e instale `requirements.txt`. Confirme Codex autenticado e agent-browser disponível (a POC usa 0.39.1).
+3. Execute `python3 scripts/setup_command.py --home /caminho/privado/do/runtime`, informando `--agent-browser /caminho/do/binario` se necessário.
+4. Cadastre o `run-command.sh` gerado como MCP **Command**. Disponibilize `BROWSER_USE_API_KEY` pelo gerenciador de segredos do Grok no ambiente do processo e configure `BROWSER_USE_PROFILE_ID` com o perfil escolhido. Não coloque valores secretos no comando, nos argumentos ou no Git.
+5. Chame `navegar` uma vez com uma tarefa pública simples e confira a conclusão. Se faltar chave ou perfil, a ferramenta retorna `requires_setup` sem executar Codex ou abrir navegador.
+
+O instalador por comando copia o código e cria os lançadores; não instala dependências, não altera o Mac nem grava a chave recebida pelo ambiente em arquivo. O runtime lê configuração privada opcional e prioriza as duas variáveis acima. A disponibilidade de credenciais no conector por comando deve ser confirmada no chat do proprietário do Grok; não há suporte multiusuário neste MVP.
 
 ## Dados que não pertencem ao repositório
 

@@ -5,7 +5,7 @@ from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 os.umask(0o077)
 from runtime import ROOT, CONFIG
-server=MCPServer('codex-cloud-pilot',version='0.5.0',instructions='Use navegar(tarefa,url) only for read/search browser tasks. No editing, publishing, messages, purchases or deletion. One call per user request. Local Codex performs navigation and returns only final JSON after browser cleanup. Do not poll, monitor, retry automatically or use other agents. Never send credentials in task text.')
+server=MCPServer('codex-cloud-pilot',version='0.6.0',instructions='Use navegar(tarefa,url) only for read/search browser tasks. No editing, publishing, messages, purchases or deletion. One call per user request. Local Codex performs navigation and returns only final JSON after browser cleanup. Do not poll, monitor, retry automatically or use other agents. Never send credentials in task text.')
 lock=asyncio.Lock()
 @server.tool()
 async def navegar(tarefa:str,url:str)->dict:
@@ -15,6 +15,8 @@ async def navegar(tarefa:str,url:str)->dict:
  from navigation_guard import check_url
  try:check_url(url)
  except ValueError:return {'status':'failed','error':'Use a public HTTP(S) URL without credentials'}
+ if not CONFIG.get('browser_use_api_key') or not CONFIG.get('profile_id'):
+  return {'status':'requires_setup','error':'Configure BROWSER_USE_API_KEY and BROWSER_USE_PROFILE_ID in the MCP process environment; never send credentials in task text.'}
  return await dispatch({'task':tarefa,'url':url})
 async def dispatch(request):
  if lock.locked():return {'status':'busy','error':'Another query is running. Do not poll or retry automatically.'}
@@ -39,12 +41,21 @@ async def dispatch(request):
    (state/'delivery-error.json').write_text(json.dumps({'finished_epoch':time.time(),'type':type(exc).__name__}))
    if isinstance(exc,asyncio.CancelledError):raise
    return {'status':'failed','run_id':run_id,'error':'Executor or delivery failed ('+type(exc).__name__+'). Do not retry automatically.'}
-security=TransportSecuritySettings(enable_dns_rebinding_protection=True,allowed_hosts=['127.0.0.1:*','localhost:*',CONFIG['public_host']],allowed_origins=['https://'+CONFIG['public_host']])
-mcp_app=server.streamable_http_app(streamable_http_path=CONFIG['private_path'],json_response=True,stateless_http=True,transport_security=security)
-async def app(scope,receive,send):
- if scope['type']=='http' and scope['path']=='/health':
-  await send({'type':'http.response.start','status':200,'headers':[(b'content-type',b'application/json')]});await send({'type':'http.response.body','body':b'{"status":"ok","scope":"browser-read-search"}'});return
- await mcp_app(scope,receive,send)
+def make_http_app():
+ security=TransportSecuritySettings(enable_dns_rebinding_protection=True,allowed_hosts=['127.0.0.1:*','localhost:*',CONFIG['public_host']],allowed_origins=['https://'+CONFIG['public_host']])
+ mcp_app=server.streamable_http_app(streamable_http_path=CONFIG['private_path'],json_response=True,stateless_http=True,transport_security=security)
+ async def app(scope,receive,send):
+  if scope['type']=='http' and scope['path']=='/health':
+   await send({'type':'http.response.start','status':200,'headers':[(b'content-type',b'application/json')]});await send({'type':'http.response.body','body':b'{"status":"ok","scope":"browser-read-search"}'});return
+  await mcp_app(scope,receive,send)
+ return app
 if __name__=='__main__':
- import uvicorn
- uvicorn.run(app,host='127.0.0.1',port=CONFIG['port'],access_log=False,log_level='warning',timeout_graceful_shutdown=65)
+ import argparse
+ parser=argparse.ArgumentParser()
+ parser.add_argument('--transport',choices=['stdio','http'],default='http')
+ args=parser.parse_args()
+ if args.transport=='stdio':
+  server.run(transport='stdio')
+ else:
+  import uvicorn
+  uvicorn.run(make_http_app(),host='127.0.0.1',port=CONFIG['port'],access_log=False,log_level='warning',timeout_graceful_shutdown=65)
