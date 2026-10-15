@@ -24,3 +24,7 @@ A primeira execução falhou porque o shell de login redefiniu o PATH (`agent-br
 - Código executado: commit `1495004`. A instalação HTTPS do Mac foi preservada como alternativa. Não foi necessária VPS independente nem túnel para esse conector.
 
 Esta validação cobre uma tarefa pública no novo host. Retomada após recuperação da máquina, uso multiusuário e novas sessões autenticadas nesse host não foram testados.
+
+## Encerramento da instalação no Mac
+
+Após a validação no computador do Grok, o usuário solicitou manter apenas esse caminho. Em 15/10/2026, os serviços macOS da ponte e do túnel foram parados e desabilitados no launchd; o conector HTTPS antigo foi retirado do Maestro. `codex-browser-command` permanece ativo. Arquivos e configurações privadas do Mac não foram apagados. Nenhuma nova navegação foi necessária para essa desativação.

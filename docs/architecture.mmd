@@ -1,13 +1,11 @@
 flowchart LR
     K["Skills e instruções de sites<br/>Camada externa ao conector"] -.-> O["Maestro / orquestrador<br/>Uma tarefa e URL"]
-    O -->|MCP Command stdio| G["VALIDADO: executor no computador do Grok<br/>navegar → Codex CLI<br/>Sem Mac ou túnel nesse caminho"]
-    O -->|Alternativa MCP HTTPS| T["Túnel fixo → executor no Mac<br/>Instalação preservada"]
+    O -->|MCP Command stdio| G["ÚNICO CONECTOR ATIVO<br/>codex-browser-command<br/>Executor e Codex no computador do Grok"]
     G <-->|ações e observações| B["agent-browser<br/>Browser Use Cloud"]
-    T <--> B
     P["Perfil persistente<br/>Login manual separado"] -.-> B
     G --> C["Encerrar navegador<br/>Resultado final e métricas"]
-    T --> C
     C -->|somente resultado final| O
     G -.-> L["Configuração e evidências privadas<br/>Fora do repositório"]
-    G -.-> V["Futuro: VPS independente<br/>Ainda não implantada"]
-    G --> R["Tarefa pública validada<br/>18,0 s; succeeded<br/>browser_closed: true"]
+    G --> R["POC VALIDADA<br/>Tarefa pública: 18,0 s; succeeded<br/>browser_closed: true"]
+    X["MAC DESATIVADO<br/>Ponte e túnel parados; início automático desabilitado<br/>Conector HTTPS retirado do Maestro"]
+    V["VPS independente: opcional no futuro<br/>Não necessária para esta POC"]

@@ -3,7 +3,7 @@
 MCP privado para um orquestrador delegar navegação de leitura e pesquisa ao Codex CLI, usando Browser Use Cloud. O orquestrador envia uma tarefa e recebe um único resultado final depois do encerramento do navegador. Progresso, observações e logs ficam no executor.
 
 ```text
-Orquestrador → MCP Command (stdio) ou HTTPS → executor Codex → Browser Use Cloud
+Maestro → MCP Command (stdio) → Codex no computador do Grok → Browser Use Cloud
 Orquestrador ← resultado final ← navegador encerrado
 ```
 
@@ -36,9 +36,9 @@ Veja [o guia de uso](docs/usage.md), [a arquitetura](docs/architecture.mmd) e [a
 
 Escopo atual: abrir páginas públicas HTTP(S), navegar por links/menus, rolar e preencher buscas, reutilizando um perfil de login. Edição de dados, publicação, mensagens, compras e exclusões ficam fora do escopo. A política do modelo e a lista de comandos reduzem as operações expostas; não constituem isolamento de segurança para múltiplos clientes. A checagem genérica confere execução e URL final, sem provar semanticamente todas as respostas.
 
-Na instalação HTTPS do Mac, ele precisa estar ligado, acordado, com a sessão do usuário iniciada e conectado. O conector Command executa no computador do Grok e dispensa o Mac. O navegador remoto é efêmero; o perfil de autenticação é persistente, conforme as regras de cada site.
+A instalação em uso é `codex-browser-command`, no computador do Grok. Ela dispensa o Mac e o túnel. O host do Grok, a autenticação do Codex e o acesso ao Browser Use precisam estar disponíveis. O navegador remoto é efêmero; o perfil de autenticação é persistente, conforme as regras de cada site.
 
-## Instalação no Mac
+## Instalação no Mac — opção histórica, desativada
 
 Dependências usadas na POC: Python 3.12, Codex CLI 0.162.1 autenticado, agent-browser 0.39.1 com suporte a Browser Use Cloud, e Cloudflare Tunnel. O navegador roda no Cloud; não é necessário instalar um Chrome local para o executor.
 
@@ -73,8 +73,8 @@ A instalação em uso guarda esses dados localmente. Não é preciso apagá-los 
 
 ## Estado
 
-A versão limpa está instalada no Mac e expõe somente `navegar`. Endereço, credenciais e perfil existentes foram preservados. Uma chamada MCP com Codex e Browser Use Cloud reais confirmou o resultado e o encerramento em 36,9 segundos. A ferramenta antiga específica de site foi removida.
+POC validada com o conector `codex-browser-command` (Command/stdio) no computador do Grok Bot: Codex autenticado, Browser Use Cloud real, tarefa pública concluída em cerca de 18 segundos e navegador encerrado antes da resposta final.
 
-O conector `codex-browser-command` também foi instalado e validado no computador do Grok Bot: Codex autenticado, Browser Use Cloud real, tarefa pública concluída em cerca de 18 segundos e navegador encerrado. Esse caminho usa MCP Command/stdio e dispensa o Mac e o túnel. A instalação HTTPS do Mac continua como alternativa.
+Essa é a única instalação ativa desta ponte no Maestro. Os serviços da ponte e do túnel no Mac foram parados e desabilitados para não iniciarem no login; o conector HTTPS antigo foi retirado. Arquivos privados locais foram preservados, sem uso pelo fluxo atual.
 
-MVP para uso pessoal de leitura/pesquisa. Uma VPS independente permanece [documentada como opção futura](docs/vps.md), sem implantação nesta etapa.
+MVP pessoal de leitura/pesquisa. As tarefas e skills de sites são uma camada separada. Uma VPS independente permanece [documentada como opção futura](docs/vps.md), sem ser necessária para esta POC.

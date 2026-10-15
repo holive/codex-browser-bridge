@@ -6,11 +6,11 @@ Envie ao Maestro uma URL completa, uma tarefa concreta e peça apenas o resultad
 
 > Maestro, use a ponte para abrir https://news.ycombinator.com/ e retornar os títulos e links das três primeiras notícias. Aguarde e entregue apenas o resultado final.
 
-Para executar no computador do Grok, peça ao Maestro que use `navegar(tarefa, url)` do conector **`codex-browser-command`** (Command/stdio). O conector HTTPS `codex-cloud-pilot` permanece como alternativa no Mac. Evite executar ambos ao mesmo tempo com o mesmo perfil.
+Para executar no computador do Grok, peça ao Maestro que use `navegar(tarefa, url)` do conector **`codex-browser-command`** (Command/stdio). Esse é o único conector ativo desta ponte. O antigo conector HTTPS foi retirado, e os serviços da ponte e do túnel no Mac foram desligados e desabilitados.
 
 > Maestro, use codex-browser-command para abrir https://example.com, clicar em “Learn more” e retornar o título e a URL de destino. Aguarde e entregue apenas o resultado final.
 
- As instruções específicas de outros sites podem ficar nas skills/configuração do orquestrador e ser enviadas na tarefa. Não precisam de uma ferramenta MCP por site.
+As instruções específicas de outros sites podem ficar nas skills/configuração do orquestrador e ser enviadas na tarefa. Não precisam de uma ferramenta MCP por site.
 
 ## Login em outro site
 
@@ -31,4 +31,4 @@ Autenticar no navegador comum do computador não prepara o perfil remoto da pont
 - `out_of_scope`: pedido exige uma alteração que este MVP não permite.
 - `failed` / `timed_out`: leia o erro e decida se quer tentar novamente. Não há repetição automática.
 
-O computador do Grok e o acesso ao Codex e Browser Use precisam estar disponíveis para o conector Command. Somente a alternativa HTTPS exige o Mac ligado, acordado, com a sessão do usuário iniciada e conectado. Use uma conta/perfil por instalação neste MVP; múltiplos usuários, isolamento de contas e publicação de sites não foram implementados.
+O computador do Grok e o acesso ao Codex e Browser Use precisam estar disponíveis para o conector Command. O Mac e o túnel não participam do fluxo atual. Use uma conta/perfil por instalação neste MVP; múltiplos usuários, isolamento de contas e publicação de sites não foram implementados.
