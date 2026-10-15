@@ -1,0 +1,11 @@
+flowchart LR
+    K["Skills e instruções de sites<br/>Camada externa ao conector"] -.-> O["Orquestrador<br/>Uma tarefa e URL"]
+    O -->|MCP HTTPS| T["Túnel com endereço fixo"]
+    T --> M["MCP navegar<br/>Uma execução por vez"]
+    M --> E["Executor no Mac<br/>Codex CLI"]
+    E <-->|ações e observações| B["agent-browser<br/>Browser Use Cloud"]
+    P["Perfil persistente<br/>Login manual separado"] -.-> B
+    E --> C["Encerrar navegador<br/>Conferir resultado e registrar métricas"]
+    C -->|somente resultado final| O
+    E -.-> L["Configuração e evidências privadas<br/>Fora do repositório"]
+    M -.-> V["Futuro: mesmo executor em VPS<br/>Ainda não implantado"]

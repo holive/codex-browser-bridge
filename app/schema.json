@@ -1,0 +1,1 @@
+{"type": "object", "additionalProperties": false, "properties": {"status": {"type": "string", "enum": ["succeeded", "failed", "requires_auth", "out_of_scope"]}, "result": {"type": "string"}, "final_url": {"type": "string"}, "error": {"type": "string"}}, "required": ["status", "result", "final_url", "error"]}
