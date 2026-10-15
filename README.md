@@ -1,6 +1,8 @@
 # Codex Browser Bridge
 
-Let Grok Bot delegate browser tasks to Codex using your existing ChatGPT subscription. Send a task and a URL; Codex navigates in Browser Use Cloud, closes the browser, and returns one final result.
+An MCP bridge for delegating browser tasks to a dedicated execution agent. Send a task and a URL; the agent navigates, closes the browser, and returns one final result.
+
+**Current implementation:** Codex CLI + agent-browser + Browser Use Cloud. **Tested orchestrator:** Grok Bot / Maestro. Codex can use your existing ChatGPT subscription.
 
 ## One task, one result
 
@@ -23,7 +25,9 @@ Grok Bot / Maestro → MCP Command → Codex CLI → agent-browser → Browser U
 Grok Bot / Maestro ← one final result, after browser cleanup
 ```
 
-The bridge and Codex CLI run on the Grok Bot computer. Codex accesses the model remotely; Browser Use Cloud hosts the browser. Command/stdio needs no public bridge endpoint or tunnel.
+The layers are an orchestrator, an execution agent, and browser infrastructure. Any MCP client capable of launching this Command/stdio server on a compatible host can be an orchestrator; Grok Bot is the validated client today. Replacing Codex CLI or Browser Use Cloud would require integration changes. Alternative execution agents and browser backends are not implemented.
+
+The bridge and Codex CLI run on the host that launches the MCP server; the validated deployment uses the Grok Bot computer. Codex accesses the model remotely; Browser Use Cloud hosts the browser. Command/stdio needs no public bridge endpoint or tunnel.
 
 Each task uses a temporary browser with a persistent Cloud profile. Log into sites manually in that remote profile first; later tasks reuse the login until the site expires or revokes it. Website instructions and skills belong outside this connector and can be passed in the task.
 
@@ -57,3 +61,7 @@ If browser cleanup cannot be confirmed, the bridge reports failure and blocks fu
 - [Technical reference](docs/technical.md): MCP contract, components, and private state.
 - [Architecture](docs/architecture.mmd): the flow in Mermaid.
 - [Reliability](docs/reliability.md): measured results and remaining limits.
+
+## License
+
+[MIT](LICENSE). The license covers this repository; external tools and services retain their own terms and licenses.

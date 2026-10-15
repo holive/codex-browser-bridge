@@ -81,4 +81,4 @@ If cleanup is uncertain, follow [operator recovery](install.md#unconfirmed-clean
 
 ## Distribution
 
-The repository remains private. No distribution license has been selected and no public release is claimed here. Before sharing logs or publishing, inspect the actual changes for secrets and account data; a previous targeted history scan is not a guarantee for new files.
+The repository remains private. The code and documentation are licensed under [MIT](../LICENSE); no public release is claimed here. Before sharing logs or publishing, inspect the actual changes for secrets and account data; a previous targeted history scan is not a guarantee for new files.
