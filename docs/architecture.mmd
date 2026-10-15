@@ -1,6 +1,7 @@
 flowchart LR
     K["Skills e instruções de sites<br/>Camada externa ao conector"] -.-> O["Orquestrador<br/>Uma tarefa e URL"]
-    O -->|MCP HTTPS| T["Túnel com endereço fixo"]
+    O -->|MCP HTTP| T["Túnel com endereço fixo"]
+    O -->|MCP Command stdio| M
     T --> M["MCP navegar<br/>Uma execução por vez"]
     M --> E["Executor no Mac<br/>Codex CLI"]
     E <-->|ações e observações| B["agent-browser<br/>Browser Use Cloud"]
