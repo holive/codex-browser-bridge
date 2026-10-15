@@ -2,13 +2,11 @@
 
 Envie ao Maestro uma URL completa, uma tarefa concreta e peça apenas o resultado final. Não envie placeholders, senhas, códigos ou tokens.
 
-> Maestro, use a ponte para abrir https://example.com, clicar em “Learn more” e retornar o título e a URL da página de destino. Aguarde e entregue apenas o resultado final.
+> Maestro, use codex-browser-command para abrir https://example.com, clicar em “Learn more” e retornar o título e a URL da página de destino. Aguarde e entregue apenas o resultado final.
 
 > Maestro, use a ponte para abrir https://news.ycombinator.com/ e retornar os títulos e links das três primeiras notícias. Aguarde e entregue apenas o resultado final.
 
-Para executar no computador do Grok, peça ao Maestro que use `navegar(tarefa, url)` do conector **`codex-browser-command`** (Command/stdio). Esse é o único conector ativo desta ponte. O antigo conector HTTPS foi retirado, e os serviços da ponte e do túnel no Mac foram desligados e desabilitados.
-
-> Maestro, use codex-browser-command para abrir https://example.com, clicar em “Learn more” e retornar o título e a URL de destino. Aguarde e entregue apenas o resultado final.
+Peça ao Maestro que use `navegar(tarefa, url)` do conector **`codex-browser-command`** (Command/stdio). Esse é o único conector ativo desta ponte. O antigo conector HTTPS foi retirado, e os serviços da ponte e do túnel no Mac foram desligados e desabilitados.
 
 As instruções específicas de outros sites podem ficar nas skills/configuração do orquestrador e ser enviadas na tarefa. Não precisam de uma ferramenta MCP por site.
 

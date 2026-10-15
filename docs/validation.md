@@ -1,6 +1,6 @@
 # Validação do MVP
 
-Em 15/10/2026, um orquestrador real chamou o MCP, o Codex CLI local controlou um navegador real do Browser Use Cloud e a ferramenta retornou apenas o resultado final após encerrar o navegador.
+Em 15/10/2026, um orquestrador real chamou o MCP, o Codex CLI no host executor controlou um navegador real do Browser Use Cloud e a ferramenta retornou apenas o resultado final após encerrar o navegador.
 
 A tarefa pública de referência abriu `https://example.com`, clicou em “Learn more” e retornou o título **Example Domains** e `https://www.iana.org/help/example-domains`.
 
@@ -12,7 +12,7 @@ Os testes antigos específicos de sites, contas pessoais, relatórios completos,
 
 A versão limpa foi instalada no Mac após autorização. A checagem de contrato com configuração fictícia expôs somente `navegar`. Em seguida, uma chamada MCP local com Codex e Browser Use Cloud reais repetiu a tarefa pública: sucesso em 36,9 segundos e navegador encerrado. Essa última chamada confirma o executor limpo; as execuções anteriores pelo orquestrador confirmam o transporte remoto. Essa checagem ocorreu na instalação do Mac.
 
-## Executor no computador do Grok Bot
+## Executor no computador do Grok Bot — caminho ativo
 
 Em 15/10/2026, o Maestro chamou `navegar` pelo novo conector `codex-browser-command`, do tipo Command/stdio. O processo MCP e o Codex CLI rodaram no computador do Grok; o navegador continuou no Browser Use Cloud. A chave foi fornecida manualmente pelo usuário no gerenciador de segredos e configurada no runtime privado, sem Git. O mesmo perfil Cloud foi configurado; esta tarefa pública não verifica login.
 
@@ -21,7 +21,7 @@ A primeira execução falhou porque o shell de login redefiniu o PATH (`agent-br
 - Tempo total: cerca de 18,0 s; preparação 1,8 s; Codex 15,4 s.
 - Tokens do Codex: entrada 75.371; cache 59.136; sem cache 16.235; saída 271.
 - Resultado entregue pelo MCP após encerrar o navegador; sem observações ou cliques intermediários enviados ao orquestrador. Não foi medida a contagem de tokens do Maestro.
-- Código executado: commit `1495004`. A instalação HTTPS do Mac foi preservada como alternativa. Não foi necessária VPS independente nem túnel para esse conector.
+- Código executado: commit `1495004`. Naquele momento, a instalação HTTPS do Mac ainda estava disponível; foi desativada em seguida, como registrado abaixo. Não foi necessária VPS independente nem túnel para esse conector.
 
 Esta validação cobre uma tarefa pública no novo host. Retomada após recuperação da máquina, uso multiusuário e novas sessões autenticadas nesse host não foram testados.
 
