@@ -1,5 +1,5 @@
 """One local request -> real Codex/browser -> one final JSON. Diagnostics stay local."""
-import json,os,signal,subprocess,sys,threading,time
+import json,os,shlex,signal,subprocess,sys,threading,time
 from pathlib import Path
 from runtime import ROOT, CONFIG
 from browser import api, browsers, call
@@ -18,7 +18,7 @@ def execute(request):
   known={b['id'] for b in browsers()};setup=time.monotonic();browser(['open','about:blank'])
   new=[b for b in browsers() if b['id'] not in known and b['status']=='active'];assert len(new)==1,'Owned browser not uniquely identified'
   tracked=new[0]['id'];audit['browser_id']=tracked;result['metrics']['setup_seconds']=round(time.monotonic()-setup,3)
-  prompt=(Path(__file__).with_name('executor-policy.txt')).read_text()+'\nURL inicial: '+json.dumps(request['url'])+'\nTarefa: '+json.dumps(request['task'],ensure_ascii=False)+'\nComece abrindo a URL inicial. Execute somente leitura/pesquisa e termine com o JSON solicitado.'
+  prompt=(Path(__file__).with_name('executor-policy.txt')).read_text()+'\nExecutável permitido: '+shlex.quote(str(ROOT/'commands/agent-browser'))+'\nUse sempre esse caminho absoluto no lugar de agent-browser; o shell pode redefinir PATH.\nURL inicial: '+json.dumps(request['url'])+'\nTarefa: '+json.dumps(request['task'],ensure_ascii=False)+'\nComece abrindo a URL inicial. Execute somente leitura/pesquisa e termine com o JSON solicitado.'
   (STATE/'codex-prompt.txt').write_text(prompt);env=dict(os.environ);env['PATH']=str(ROOT/'commands')+os.pathsep+env.get('PATH','')
   args=[CONFIG['codex_bin'],'exec','--ignore-user-config','--ephemeral','--skip-git-repo-check','--approve-for-me','--json','-c','sandbox_workspace_write.network_access=true','-c','model="gpt-6.1-sol"','-c','model_reasoning_effort="high"','--output-schema',str(Path(__file__).with_name('schema.json')),'-o',str(STATE/'codex-final.json'),'-']
   began=time.monotonic();audit['codex_invocations']=1
