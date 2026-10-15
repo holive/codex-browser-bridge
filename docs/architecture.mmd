@@ -6,8 +6,12 @@ flowchart LR
     G --> C["Encerrar navegador<br/>Resultado final e métricas"]
     C -->|somente resultado final| O
     G -.-> L["Configuração e evidências privadas<br/>Fora do repositório"]
-    G --> R["VERSÃO NOVA APLICADA<br/>Tarefa pública: 24,0 s; succeeded<br/>browser_closed: true"]
+    G --> R["VALIDADO NO GROK: 21 testes sem modelo/Cloud<br/>3 casos reais aprovados; 47,8 s somados<br/>3 navegadores encerrados; sem pendências"]
     V["VPS independente: opcional no futuro<br/>Não necessária para esta POC"]
     S["APLICADO NO GROK: instalador repetível<br/>Dependências e lançador<br/>Preserva configuração privada"] --> G
     S --> D["VALIDADO: diagnóstico local --check<br/>Configuração preservada ao reinstalar<br/>Sem modelo ou navegador"]
     D --> F["CONFIRMADO: uma única tarefa real<br/>Chave e perfil preservados"]
+    G --> H["Trava entre processos no mesmo runtime<br/>Journal privado e limpeza supervisionada"]
+    H --> U{"Encerramento confirmado?"}
+    U -->|Sim| C
+    U -->|Não| X["Falha com cleanup_pending<br/>Próxima tarefa bloqueada<br/>Conferência do operador; sem repetição automática"]

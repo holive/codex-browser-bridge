@@ -4,7 +4,7 @@ O objetivo é preparar um executor no computador do Grok, disponibilizar sua con
 
 ## 1. Preparar o computador
 
-Obtenha este repositório privado em uma pasta durável. É necessário acesso ao GitHub privado, Python 3.11+ e, para instalar os CLIs ausentes, Node.js 20+ com npm. Use os mecanismos disponíveis na versão atual do Grok para esses requisitos.
+Obtenha este repositório privado em uma pasta durável. É necessário acesso ao GitHub privado, um host POSIX (Linux no ambiente implantado), Python 3.11+ e, para instalar os CLIs ausentes, Node.js 20+ com npm. Use os mecanismos disponíveis na versão atual do Grok para esses requisitos.
 
 Na pasta do repositório, execute:
 

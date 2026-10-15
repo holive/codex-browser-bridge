@@ -31,3 +31,7 @@ Após o diagnóstico, foi feita uma única chamada `navegar`: `https://example.c
 - Tokens Codex: entrada 75.685; cache 59.648; sem cache 16.037; saída 317.
 
 Não foi repetida a bateria anterior. Esta chamada confirma a aplicação da versão nova e a navegação pública pelo conector existente; não verifica login em sites ou recuperação após perda completa do host.
+
+## Bateria de confiabilidade
+
+O commit `78ac5c9` foi aplicado no computador do Grok, com configuração preservada. Passaram 21 testes sem modelo/Cloud no Linux e três chamadas reais: navegação pública, consulta autenticada e recusa de publicação. Todos os navegadores dessas chamadas foram encerrados, sem pendência. As falhas corrigidas, os números e os limites estão no [relatório de confiabilidade](reliability.md).

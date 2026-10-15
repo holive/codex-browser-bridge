@@ -43,5 +43,6 @@ O fluxo foi validado em uma tarefa pública: abrir example.com, seguir “Learn 
 - [Uso](docs/usage.md): pedidos, login e tratamento dos retornos.
 - [Guia técnico](docs/technical.md): instalação, interface MCP, implementação e limites.
 - [Arquitetura](docs/architecture.mmd): diagrama das conexões e responsabilidades.
+- [Confiabilidade](docs/reliability.md): testes de falha, concorrência, correções e três cenários reais.
 - [Validação](docs/validation.md): resultados observados e limites dos testes.
 - [VPS opcional](docs/vps.md): alternativa futura de hospedagem, ainda não validada.
