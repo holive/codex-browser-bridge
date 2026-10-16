@@ -1,6 +1,8 @@
 # Install and use
 
-The bridge runs beside the orchestrator on its POSIX host. The browser runs in Browser Use Cloud. This guide describes the required contract rather than a particular version of the Grok settings screen.
+The bridge runs beside the orchestrator on its POSIX host. The browser runs in Browser Use Cloud. This guide describes the required contract rather than a particular version of an orchestrator’s settings screen.
+
+The bridge is designed for read-only browser research. Agent instructions require navigation/search only and refusal of change requests; a wrapper also restricts browser command names and some arguments. It does not check whether a click or text entry changes site data. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope. See [scope enforcement](technical.md#scope-enforcement) for the exact boundaries.
 
 ## 1. Prepare the host
 
@@ -9,10 +11,10 @@ Obtain the repository in a durable directory. You need Python 3.11+ and Node.js 
 From the repository directory:
 
 ```sh
-python3 scripts/setup_command.py --home /workspace/codex-browser-bridge-runtime
+python3 scripts/setup_command.py --home "<runtime-dir>"
 ```
 
-Choose a private, durable runtime directory **outside the repository**. The installer creates the Python environment, installs missing CLIs, copies the application, and generates `run-command.sh`. Existing executables are reused; `--codex /absolute/path` and `--agent-browser /absolute/path` select them explicitly.
+Replace `<runtime-dir>` with an absolute path to a private, durable runtime directory **outside the repository**. If `--home` is omitted, the code defaults to `~/.local/share/codex-browser-bridge`, overridden by `CODEX_BROWSER_BRIDGE_HOME`. The installer creates the Python environment, installs missing CLIs, copies the application, and generates `run-command.sh`. Existing executables are reused; `--codex /absolute/path` and `--agent-browser /absolute/path` select them explicitly.
 
 Rerunning setup preserves private configuration, Codex authentication, and the Cloud profile reference. It does not recover a deleted Cloud profile. Its JSON report gives the launcher path and outstanding requirements. Exit codes: `0` local requirements ready; `1` runtime prepared but setup remains incomplete; `2` preparation failed. Setup and its diagnostics do not call a model or open a browser.
 
@@ -33,22 +35,22 @@ Alternatively, set `browser_use_api_key` and `profile_id` in the runtime's priva
 
 | Field | Value |
 | --- | --- |
-| Suggested name | `codex-browser-command` |
+| Name you choose | `<connector-name>` |
 | Transport | Command / stdio |
 | Command | Absolute `run-command.sh` path returned by setup. |
 | Arguments | None. |
 | Private environment | Cloud key and profile available to this process. |
 | Tool | `navegar(tarefa, url)` |
 
-If Grok changes its interface, adapt the registration to this contract. Do not reproduce an old sequence of clicks or create duplicate connectors.
+Register the connector using this contract; the exact settings labels may vary by orchestrator and version.
 
 ## 4. Confirm one real task
 
 Run the generated launcher with `--check` in the same private environment the MCP will use. A `ready` result confirms local prerequisites only; it does not validate the Cloud key, profile, or model access remotely.
 
-Then ask Maestro:
+Then ask your orchestrator:
 
-> Use codex-browser-command to open https://example.com, click “Learn more,” and return the destination page's title and URL. Wait and give me only the final result.
+> Use `<connector-name>` to open https://example.com, click “Learn more,” and return the destination page's title and URL. Wait and give me only the final result.
 
 Expected result: `succeeded`, title `Example Domains`, destination `https://www.iana.org/help/example-domains`, and `browser_closed: true`. A successful first task is enough to confirm a normal installation; do not repeat the development test battery.
 
@@ -56,20 +58,22 @@ Expected result: `succeeded`, title `Example Domains`, destination `https://www.
 
 Give a complete URL and a concrete question, without placeholders or credentials:
 
-> Use codex-browser-command to open https://news.ycombinator.com/ and return the titles and links of the first three stories. Give me only the final result.
+> Use `<connector-name>` to open https://news.ycombinator.com/ and return the titles and links of the first three stories. Give me only the final result.
 
 The tool and its parameters retain their Portuguese names: `navegar(tarefa, url)`. Task instructions may be in English. Site-specific instructions can live in the orchestrator's skills or configuration and be included in `tarefa`; they do not need another MCP tool.
 
-## Log into another site
+## Prepare a site login
 
-Login preparation is manual and separate from the tool. Logging into your ordinary browser does not authenticate the Cloud profile.
+Authenticated research uses the saved login in this installation's Browser Use Cloud profile. Logging into your ordinary browser does not authenticate that profile.
 
-1. Ask the operator to open the site's login page in Browser Use Cloud **using this installation's profile**.
-2. The operator creates the preparation session and privately supplies its remote browser window. Complete login and MFA there; do not send credentials to the bot.
-3. Tell the operator when finished. They close the preparation session so the profile is saved.
-4. Send a read-only task through the connector. It will reuse the profile. If the site expires or revokes the login, repeat the preparation.
+The bridge does not provide a login-window tool. An operator—the person managing the Cloud profile—must prepare the login separately. If you manage the installation yourself, you perform this role.
 
-The bridge does not include a login-window tool. `requires_auth` ends the current task and closes its browser; it means manual preparation is needed.
+1. Create a Browser Use Cloud preparation session using the same profile configured for the bridge.
+2. Open its remote browser window privately and complete the site's login and MFA there. Do not send credentials to the bot.
+3. Close the preparation session so the profile is saved.
+4. Submit a read-only task through the connector.
+
+Repeat this preparation if the site expires or revokes the login. A `requires_auth` result ends the current task and closes its browser; it does not start an interactive login flow.
 
 ## Handle a result
 
@@ -78,11 +82,11 @@ The bridge does not include a login-window tool. `requires_auth` ends the curren
 | `succeeded` | Use the final answer. |
 | `requires_setup` | Provide missing private configuration to the MCP process. |
 | `requires_auth` | Prepare or renew the site login manually. |
-| `out_of_scope` | The request asks for changes this connector does not support. |
+| `out_of_scope` | The agent reports that the request is outside its instructed read/research scope. |
 | `busy` | Wait for the active task; inspect cleanup if `cleanup_pending` is present. |
 | `failed` / `timed_out` | Read the error before deciding whether to try again. |
 
-There are no automatic retries. Use one runtime and one account/profile per installation. The lock coordinates processes using that runtime on the same host; it does not coordinate different directories or hosts.
+There are no automatic retries. Use one runtime and one account/profile per installation. Avoid simultaneous use of that profile from separate runtimes. The lock coordinates processes using that runtime on the same host; it does not coordinate different directories or hosts.
 
 ### Unconfirmed cleanup
 
@@ -108,4 +112,4 @@ Obtain the repository on a replacement POSIX host, run setup, authenticate Codex
 
 ## When a component changes
 
-`--check` warns about versions differing from the recorded versions and checks required CLI options. It cannot prove behavioral compatibility. Model and reasoning settings are `codex_model` and `codex_reasoning_effort` in private `config.json`. See [technical reference](technical.md) for the component boundaries; adjust only the affected integration while preserving the lifecycle checks.
+`--check` warns about versions differing from the recorded versions and checks required CLI options. It cannot prove behavioral compatibility. Model and reasoning settings are `codex_model` and `codex_reasoning_effort` in private `config.json`; setup defaults are `gpt-6.1-sol` and `high`, respectively. See [technical reference](technical.md) for the component boundaries; adjust only the affected integration while preserving the lifecycle checks.

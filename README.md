@@ -1,35 +1,18 @@
 # Codex Browser Bridge
 
-An MCP bridge for delegating browser tasks to a dedicated execution agent. Send a task and a URL; the agent navigates, closes the browser, and returns one final result.
+Delegate browser navigation, reading, and search to Codex in one MCP call.
 
-**Current implementation:** Codex CLI + agent-browser + Browser Use Cloud. **Tested orchestrator:** Grok Bot / Maestro. Codex can use your existing ChatGPT subscription.
+An orchestrator sends a task and a starting URL. Codex navigates and gathers the answer in a browser running in Browser Use Cloud; the bridge handles cleanup before returning the final result.
+
+## Why
+
+I built this to cut cost: Grok Bot’s in-app browser agent is excellent, but expensive when I rely heavily on browser navigation for tools without an API or MCP. I couldn’t find an existing tool that offloads that navigation from inside the orchestrator to an external browser driven by Codex, so this bridge moves the work to Codex plus a cloud browser with one orchestrator call.
 
 ## One task, one result
 
-Ask Maestro in Grok Bot:
+Use the bridge to read pages, follow links, or search for information without having your orchestrator direct each browser step. Send the question once and wait for the answer.
 
-> Use codex-browser-command to open https://example.com, click “Learn more,” and return the destination page's title and URL. Wait and give me only the final result.
-
-Or:
-
-> Use codex-browser-command to open https://news.ycombinator.com/ and return the titles and links of the first three stories. Give me only the final result.
-
-The orchestrator calls `navegar(tarefa, url)` once. Codex handles the clicks, searches, and observations; the orchestrator waits for the answer. Task instructions can be in English; the tool and parameter names remain in Portuguese.
-
-## Why this exists
-
-Browser tasks were expensive in my Grok Bot usage, while I already had access to Codex through a subscription. This bridge delegates the browsing work to Codex. Reducing cost is the motivation; actual savings have not been measured. Codex subscription limits and Browser Use Cloud charges still apply.
-
-```text
-Grok Bot / Maestro → MCP Command → Codex CLI → agent-browser → Browser Use Cloud
-Grok Bot / Maestro ← one final result, after browser cleanup
-```
-
-The layers are an orchestrator, an execution agent, and browser infrastructure. Any MCP client capable of launching this Command/stdio server on a compatible host can be an orchestrator; Grok Bot is the validated client today. Replacing Codex CLI or Browser Use Cloud would require integration changes. Alternative execution agents and browser backends are not implemented.
-
-The bridge and Codex CLI run on the host that launches the MCP server; the validated deployment uses the Grok Bot computer. Codex accesses the model remotely; Browser Use Cloud hosts the browser. Command/stdio needs no public bridge endpoint or tunnel.
-
-Each task uses a temporary browser with a persistent Cloud profile. Log into sites manually in that remote profile first; later tasks reuse the login until the site expires or revokes it. Website instructions and skills belong outside this connector and can be passed in the task.
+For example, ask your orchestrator to use `<connector-name>` to open a news page and return the titles and links of its first three stories. Include the starting URL and request only the final result.
 
 ## Get started
 
@@ -38,22 +21,24 @@ Requirements: a POSIX host (tested on Linux), Python 3.11+, Node.js 20+ with npm
 From the repository directory:
 
 ```sh
-python3 scripts/setup_command.py --home /workspace/codex-browser-bridge-runtime
+python3 scripts/setup_command.py --home "<runtime-dir>"
 ```
 
-Choose a private, durable runtime directory outside the repository. Then authenticate Codex on that host, provide the Cloud key and profile privately, and register the generated `run-command.sh` as an MCP Command/stdio connector named `codex-browser-command`.
+Choose a private, durable runtime directory outside the repository. Then authenticate Codex on that host, provide the Cloud key and profile privately, and register the generated `run-command.sh` as an MCP Command/stdio connector named `<connector-name>`.
 
 Follow the [installation and usage guide](docs/install.md) for configuration, the first task, site login, recovery, updates, and rollback.
 
-## Scope and evidence
+## Scope and limits
 
-This connector supports **reading and research**: opening pages, following links, scrolling, and filling searches. Editing data, publishing, messaging, purchases, and deletions are outside its scope. It runs one task per runtime at a time, with no queue or automatic retries.
+The intended scope is read-only browser research. Agent instructions require refusal of requests to edit, publish, send messages, purchase, or delete. A wrapper allowlists browser command names and some arguments, but does not determine whether clicks or typing change site data. It is not a shell-command allowlist for Codex. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope. See [scope enforcement](docs/technical.md#scope-enforcement).
 
-The real integration battery passed **11/11 cases** through MCP, Codex, and Browser Use Cloud on the Grok Bot computer. It covered public navigation, search, saved login, missing information, refusal to publish, executor interruptions, and a concurrent request. All task browsers were confirmed stopped by the provider. Login was reused about **32 minutes** between queries. See [reliability and limits](docs/reliability.md).
+Tested with Grok Bot; other compatible MCP Command/stdio clients have not been validated. See the [technical reference](docs/technical.md#runtime-and-contract) for the host architecture, tool contract, and integration boundaries.
 
-The release candidate also passed six real-use acceptance journeys from a new isolated runtime, including recovery after owned process loss and a simulated cleanup API outage. Source rollback and update were confirmed with a real task after each. Authentication and CLI binaries were inherited; an independent person's first installation remains to be checked.
+Each task creates a temporary Cloud browser using a persistent profile. One task runs at a time per runtime, with no queue or automatic retry. If browser shutdown cannot be confirmed, the bridge reports failure and blocks new tasks until an operator resolves cleanup. See the installation guide for [site login](docs/install.md#prepare-a-site-login) and [profile usage and recovery](docs/install.md#handle-a-result).
 
-If browser cleanup cannot be confirmed, the bridge reports failure and blocks further work until an operator resolves it. The read/research policy is not a security sandbox. Multiuser isolation, distributed coordination, general reliability rates, and orchestrator token savings have not been demonstrated.
+Cost savings have not been measured. Codex usage limits and Browser Use Cloud charges still apply.
+
+An independent person's first installation remains untested. See [Reliability and limits](docs/reliability.md) for validation results, conditions, and remaining gaps; these checks do not establish a general success rate or multiuser isolation.
 
 ## Documentation
 
