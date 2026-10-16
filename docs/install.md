@@ -86,7 +86,7 @@ Repeat this preparation if the site expires or revokes the login. A `requires_au
 | `busy` | Wait for the active task; inspect cleanup if `cleanup_pending` is present. |
 | `failed` / `timed_out` | Read the error before deciding whether to try again. |
 
-There are no automatic retries. Use one runtime and one account/profile per installation. The lock coordinates processes using that runtime on the same host; it does not coordinate different directories or hosts.
+There are no automatic retries. Use one runtime and one account/profile per installation. Avoid simultaneous use of that profile from separate runtimes. The lock coordinates processes using that runtime on the same host; it does not coordinate different directories or hosts.
 
 ### Unconfirmed cleanup
 

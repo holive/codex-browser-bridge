@@ -32,13 +32,13 @@ Follow the [installation and usage guide](docs/install.md) for configuration, th
 
 The intended scope is read-only browser research. Agent instructions require refusal of requests to edit, publish, send messages, purchase, or delete. A wrapper allowlists browser command names and some arguments, but does not determine whether clicks or typing change site data. It is not a shell-command allowlist for Codex. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope. See [scope enforcement](docs/technical.md#scope-enforcement).
 
-The bridge uses Codex CLI and agent-browser on the host that launches the MCP server; no public bridge endpoint or tunnel is required. The tool is `navegar(tarefa, url)`; task instructions may be in English. Tested with Grok Bot; other compatible MCP Command/stdio clients have not been validated. Replacing Codex CLI or the browser backend requires integration changes.
+Tested with Grok Bot; other compatible MCP Command/stdio clients have not been validated. See the [technical reference](docs/technical.md#runtime-and-contract) for the host architecture, tool contract, and integration boundaries.
 
-Each task creates a temporary Cloud browser using a persistent profile. Prepare site logins manually in that profile. One task runs at a time per runtime, with no queue or automatic retry. Use one account/profile per installation and avoid simultaneous use of that profile from separate runtimes. If browser shutdown cannot be confirmed, the bridge reports failure and blocks new tasks until an operator resolves cleanup.
+Each task creates a temporary Cloud browser using a persistent profile. One task runs at a time per runtime, with no queue or automatic retry. If browser shutdown cannot be confirmed, the bridge reports failure and blocks new tasks until an operator resolves cleanup. See the installation guide for [site login](docs/install.md#prepare-a-site-login) and [profile usage and recovery](docs/install.md#handle-a-result).
 
 Cost savings have not been measured. Codex usage limits and Browser Use Cloud charges still apply.
 
-Reported validation includes 11/11 real integration cases, 6/6 release-candidate acceptance journeys, a concurrent request returning `busy`, and source rollback/update followed by real navigation tasks. Task browsers were confirmed stopped in these checks. An independent person's first installation remains untested. These results do not establish a general success rate, cost savings, multiuser isolation, or behavior during a whole-host failure or real provider-wide outage. See [Reliability and limits](docs/reliability.md) for conditions and remaining gaps.
+An independent person's first installation remains untested. See [Reliability and limits](docs/reliability.md) for validation results, conditions, and remaining gaps; these checks do not establish a general success rate or multiuser isolation.
 
 ## Documentation
 
