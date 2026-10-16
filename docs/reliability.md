@@ -1,6 +1,6 @@
 # Reliability and limits
 
-The checks below provide evidence for specific workflows on the Grok Bot Linux host. They do not establish a general success rate or security certification. Full reports, account data, session identifiers, and logs remain private.
+The checks below provide evidence for specific workflows on the tested Linux host. They do not establish a general success rate or security certification. Full reports, account data, session identifiers, and logs remain private.
 
 | Validation | Reported result | Main limitation |
 | --- | --- | --- |
@@ -16,7 +16,7 @@ If cleanup cannot be confirmed, the runtime blocks new tasks until an operator v
 
 ## Real integration battery — 2026-10-15
 
-**11/11 cases passed** through MCP Command, Codex CLI, agent-browser, and Browser Use Cloud on the Grok Bot Linux host, using runner commit `bd29ef8`. Each task browser was confirmed stopped independently through the provider API. No `cleanup_pending` or active-run marker remained at the end.
+**11/11 cases passed** through MCP Command, Codex CLI, agent-browser, and Browser Use Cloud on the tested Linux host, using runner commit `bd29ef8`. Each task browser was confirmed stopped independently through the provider API. No `cleanup_pending` or active-run marker remained at the end.
 
 | Scenario | Calls | Expected outcome observed |
 | --- | ---: | --- |
@@ -39,13 +39,13 @@ A separate concurrent MCP request during the interruption scenario returned `bus
 
 Earlier real calls confirmed public navigation, saved authentication, and refusal to publish: **3/3 passed**, all browsers stopped. They are additional evidence, not part of the 11 cases above.
 
-The installer was exercised in a new isolated directory with spaces in its path, real dependencies, and an already authenticated Codex. Real MCP handshake and a missing-configuration response worked without model/Cloud. Reinstallation preserved fictitious private settings, did not save environment secrets, and rejected an incompatible fake CLI. The installer was also applied to the existing Grok runtime, preserving its private configuration and followed by one successful public task. **This was not an independent person's installation or a fresh Codex authentication.**
+The installer was exercised in a new isolated directory with spaces in its path, real dependencies, and an already authenticated Codex. Real MCP handshake and a missing-configuration response worked without model/Cloud. Reinstallation preserved fictitious private settings, did not save environment secrets, and rejected an incompatible fake CLI. The installer was also applied to the existing runtime, preserving its private configuration and followed by one successful public task. **This was not an independent person's installation or a fresh Codex authentication.**
 
-A supporting suite passed **21/21 checks** in development and on Grok Linux. It used real processes with substitute model/provider implementations to exercise locks, cancellation, timeouts, invalid output, descendant cleanup, and uncertain creation. These checks supplement the real use cases; they do not establish Cloud behavior. Run with `python3 -m unittest discover -s tests -v` if needed for development.
+A supporting suite passed **21/21 checks** in development and on the tested Linux host. It used real processes with substitute model/provider implementations to exercise locks, cancellation, timeouts, invalid output, descendant cleanup, and uncertain creation. These checks supplement the real use cases; they do not establish Cloud behavior. Run with `python3 -m unittest discover -s tests -v` if needed for development.
 
 ## Release-candidate acceptance — 2026-10-15
 
-Candidate `b3b238a` was installed into a new isolated Linux runtime on the Grok host using the installation guide. Codex authentication, CLI binaries, and the existing private Cloud profile were inherited; the Python environment, application copy, configuration file, and launcher were newly prepared. Local diagnostics returned `ready` with all 14 checks passing and no warnings.
+Candidate `b3b238a` was installed into a new isolated Linux runtime on the tested host using the installation guide. Codex authentication, CLI binaries, and the existing private Cloud profile were inherited; the Python environment, application copy, configuration file, and launcher were newly prepared. Local diagnostics returned `ready` with all 14 checks passing and no warnings.
 
 The real MCP acceptance runner passed **6/6 user journeys in 98.6 seconds**:
 

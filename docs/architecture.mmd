@@ -1,6 +1,6 @@
 flowchart LR
-    K["Site skills and instructions<br/>Outside the connector"] -.-> O["Maestro / orchestrator<br/>One task and URL"]
-    O -->|MCP Command / stdio| G["codex-browser-command<br/>Bridge and Codex CLI on Grok host"]
+    K["Site skills and instructions<br/>Outside the connector"] -.-> O["Orchestrator<br/>One task and URL"]
+    O -->|MCP Command / stdio| G["codex-browser-command<br/>Bridge and Codex CLI on Grok hostlt;connector-namecodex-browser-command<br/>Bridge and Codex CLI on Grok hostgt;<br/>Bridge and Codex CLI on host"]
     G <-->|actions and observations| B["agent-browser<br/>Browser Use Cloud"]
     P["Persistent Cloud profile<br/>Manual login preparation"] -.-> B
     G -.-> L["Private configuration and evidence<br/>Outside Git"]

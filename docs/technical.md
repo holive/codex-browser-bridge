@@ -4,7 +4,7 @@
 
 The orchestrator launches `run-command.sh` as an MCP Command/stdio server on its own POSIX host. Stdout is reserved for MCP. The bridge starts authenticated Codex CLI on that host; Codex accesses the model remotely and controls a Cloud browser through agent-browser. No public bridge endpoint is required.
 
-The server exposes one tool:
+The MCP server name and browser namespace default to `codex-browser-bridge` in the code; the connector label in your orchestrator is your choice. The server exposes one tool:
 
 ```text
 navegar(tarefa: str, url: str)
