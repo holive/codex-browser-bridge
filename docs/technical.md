@@ -23,7 +23,9 @@ A completed execution returns `status`, `result`, `final_url`, `error`, `metrics
 
 ## Execution and cleanup
 
-One task runs per runtime/host. A file lock is inherited by the executor, so a second MCP process cannot start work while that executor survives. A persistent `active-run.json` marker blocks new work when cleanup is uncertain. There is no queue or automatic retry.
+Only one task can run at a time in a given runtime directory. Processes sharing that directory on the same host use a file lock, which the executor inherits. Separate runtime directories and hosts are not coordinated.
+
+A persistent `active-run.json` marker blocks new work when cleanup is uncertain. There is no queue or automatic retry.
 
 Codex has a 180-second deadline; preparation and cleanup add time. The adapter waits up to 300 seconds, allows up to 60 seconds for executor termination after cancellation, and attempts journal-based recovery if the executor fails. Provider cleanup requests have their own limits.
 
@@ -31,7 +33,7 @@ The lifecycle journal records whether browser creation never started, is in prog
 
 Browser Use Cloud creates the browser through `POST /api/v4/browsers`. The returned identity is journaled before attaching agent-browser through `AGENT_BROWSER_CDP`; ownership is never inferred from account-wide session lists. CDP disconnect alone does not stop the Cloud browser: cleanup explicitly stops the recorded ID through the provider API and checks its status. If creation returns no usable identity, the outcome remains uncertain and new work is blocked.
 
-A temporary browser uses the configured persistent Cloud profile. Login and MFA preparation are manual and separate; see [site login](install.md#log-into-another-site).
+A temporary browser uses the configured persistent Cloud profile. Login and MFA preparation are manual and separate; see [site login](install.md#prepare-a-site-login).
 
 ## Source map
 

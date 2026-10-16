@@ -1,8 +1,12 @@
 # Codex Browser Bridge
 
-An MCP bridge for delegating browser tasks to a dedicated execution agent. Send a task and a URL; the agent navigates, closes the browser, and returns one final result.
+Delegate browser reading and search to Codex through one MCP call. Send a task and a public URL; Codex navigates and gathers the answer, and the bridge returns the final result after browser cleanup.
 
-**Current implementation:** Codex CLI + agent-browser + Browser Use Cloud. **Tested orchestrator:** Grok Bot / Maestro. Codex can use your existing ChatGPT subscription.
+Built with Codex CLI, agent-browser, and Browser Use Cloud. Tested with Grok Bot / Maestro; other compatible MCP Command/stdio clients have not been validated.
+
+Supports reading pages, following links, scrolling, and searching. Requests to edit, publish, send messages, purchase, or delete are outside its scope. These restrictions are not a security sandbox.
+
+If browser shutdown cannot be confirmed, the bridge reports failure and blocks new tasks until an operator resolves the cleanup.
 
 ## One task, one result
 
@@ -18,18 +22,17 @@ The orchestrator calls `navegar(tarefa, url)` once. Codex handles the clicks, se
 
 ## Why this exists
 
-Browser tasks were expensive in my Grok Bot usage, while I already had access to Codex through a subscription. This bridge delegates the browsing work to Codex. Reducing cost is the motivation; actual savings have not been measured. Codex subscription limits and Browser Use Cloud charges still apply.
+I built this bridge to move browser work from Grok Bot to Codex, which I already accessed through a subscription. Cost reduction is the motivation; savings have not been measured. Codex usage limits and Browser Use Cloud charges still apply.
 
-```text
-Grok Bot / Maestro → MCP Command → Codex CLI → agent-browser → Browser Use Cloud
-Grok Bot / Maestro ← one final result, after browser cleanup
-```
+The orchestrator sends one `navegar(tarefa, url)` request. Codex handles navigation and research, and the bridge handles browser cleanup before returning the result.
 
-The layers are an orchestrator, an execution agent, and browser infrastructure. Any MCP client capable of launching this Command/stdio server on a compatible host can be an orchestrator; Grok Bot is the validated client today. Replacing Codex CLI or Browser Use Cloud would require integration changes. Alternative execution agents and browser backends are not implemented.
+Grok Bot / Maestro → MCP Command/stdio → Codex CLI → agent-browser → Browser Use Cloud
 
-The bridge and Codex CLI run on the host that launches the MCP server; the validated deployment uses the Grok Bot computer. Codex accesses the model remotely; Browser Use Cloud hosts the browser. Command/stdio needs no public bridge endpoint or tunnel.
+The bridge and Codex CLI run on the host that launches the MCP server. The browser runs in Browser Use Cloud; no public bridge endpoint or tunnel is required.
 
-Each task uses a temporary browser with a persistent Cloud profile. Log into sites manually in that remote profile first; later tasks reuse the login until the site expires or revokes it. Website instructions and skills belong outside this connector and can be passed in the task.
+Each task creates a temporary browser using a persistent Cloud profile. Prepare site logins manually in that profile before requesting authenticated research.
+
+Grok Bot / Maestro is the tested orchestrator. Other compatible MCP clients may work; replacing Codex CLI or the browser backend requires integration changes.
 
 ## Get started
 
@@ -47,13 +50,19 @@ Follow the [installation and usage guide](docs/install.md) for configuration, th
 
 ## Scope and evidence
 
-This connector supports **reading and research**: opening pages, following links, scrolling, and filling searches. Editing data, publishing, messaging, purchases, and deletions are outside its scope. It runs one task per runtime at a time, with no queue or automatic retries.
+One task runs at a time in each runtime. There is no queue or automatic retry. Use one account/profile per installation, and avoid simultaneous use of the same Cloud profile from separate runtimes.
 
-The real integration battery passed **11/11 cases** through MCP, Codex, and Browser Use Cloud on the Grok Bot computer. It covered public navigation, search, saved login, missing information, refusal to publish, executor interruptions, and a concurrent request. All task browsers were confirmed stopped by the provider. Login was reused about **32 minutes** between queries. See [reliability and limits](docs/reliability.md).
+Reported validation includes:
 
-The release candidate also passed six real-use acceptance journeys from a new isolated runtime, including recovery after owned process loss and a simulated cleanup API outage. Source rollback and update were confirmed with a real task after each. Authentication and CLI binaries were inherited; an independent person's first installation remains to be checked.
+- 11/11 real integration cases covering navigation, search, saved login, missing information, refusal to publish, and executor interruptions. A separate concurrent request returned `busy`.
+- 6/6 release-candidate acceptance journeys, including recovery after owned process loss and a simulated cleanup API outage.
+- Successful source rollback and update, each followed by a real navigation task.
 
-If browser cleanup cannot be confirmed, the bridge reports failure and blocks further work until an operator resolves it. The read/research policy is not a security sandbox. Multiuser isolation, distributed coordination, general reliability rates, and orchestrator token savings have not been demonstrated.
+Task browsers were confirmed stopped in these checks. Installation checks reused existing authentication and CLI binaries; an independent person's first installation remains untested.
+
+These results do not establish a general success rate, cost savings, multiuser isolation, or behavior during a whole-host failure or real provider-wide outage. The read/research policy is not a security sandbox.
+
+See [Reliability and limits](docs/reliability.md) for test conditions, usage figures, and remaining gaps.
 
 ## Documentation
 

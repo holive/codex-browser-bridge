@@ -40,7 +40,7 @@ Alternatively, set `browser_use_api_key` and `profile_id` in the runtime's priva
 | Private environment | Cloud key and profile available to this process. |
 | Tool | `navegar(tarefa, url)` |
 
-If Grok changes its interface, adapt the registration to this contract. Do not reproduce an old sequence of clicks or create duplicate connectors.
+Register the connector using this contract; the exact settings labels may vary by Grok version.
 
 ## 4. Confirm one real task
 
@@ -60,16 +60,18 @@ Give a complete URL and a concrete question, without placeholders or credentials
 
 The tool and its parameters retain their Portuguese names: `navegar(tarefa, url)`. Task instructions may be in English. Site-specific instructions can live in the orchestrator's skills or configuration and be included in `tarefa`; they do not need another MCP tool.
 
-## Log into another site
+## Prepare a site login
 
-Login preparation is manual and separate from the tool. Logging into your ordinary browser does not authenticate the Cloud profile.
+Authenticated research uses the saved login in this installation's Browser Use Cloud profile. Logging into your ordinary browser does not authenticate that profile.
 
-1. Ask the operator to open the site's login page in Browser Use Cloud **using this installation's profile**.
-2. The operator creates the preparation session and privately supplies its remote browser window. Complete login and MFA there; do not send credentials to the bot.
-3. Tell the operator when finished. They close the preparation session so the profile is saved.
-4. Send a read-only task through the connector. It will reuse the profile. If the site expires or revokes the login, repeat the preparation.
+The bridge does not provide a login-window tool. An operator—the person managing the Cloud profile—must prepare the login separately. If you manage the installation yourself, you perform this role.
 
-The bridge does not include a login-window tool. `requires_auth` ends the current task and closes its browser; it means manual preparation is needed.
+1. Create a Browser Use Cloud preparation session using the same profile configured for the bridge.
+2. Open its remote browser window privately and complete the site's login and MFA there. Do not send credentials to the bot.
+3. Close the preparation session so the profile is saved.
+4. Submit a read-only task through the connector.
+
+Repeat this preparation if the site expires or revokes the login. A `requires_auth` result ends the current task and closes its browser; it does not start an interactive login flow.
 
 ## Handle a result
 

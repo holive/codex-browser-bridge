@@ -1,6 +1,18 @@
 # Reliability and limits
 
-These observations describe the tested scenarios, not a general success rate or a security certification. Full reports, account data, session identifiers, and logs remain private.
+The checks below provide evidence for specific workflows on the Grok Bot Linux host. They do not establish a general success rate or security certification. Full reports, account data, session identifiers, and logs remain private.
+
+| Validation | Reported result | Main limitation |
+| --- | --- | --- |
+| Real integration battery | 11/11 cases passed; task browsers confirmed stopped. A separate concurrent request returned `busy`. | Limited scenarios on one deployment. |
+| Release-candidate acceptance | 6/6 journeys passed, including process-loss recovery and a simulated cleanup API outage. | No whole-host reboot or real provider-wide outage. |
+| Source rollback and update | One real navigation passed after each source change. | Existing CLIs and authentication were reused. |
+| Installation checks | Isolated runtime setup and existing-runtime reinstallation exercised. | No independent first installation or fresh authentication. |
+| Supporting development suite | 21/21 checks passed. | Model/provider substitutes were used. |
+
+Saved-login queries succeeded 31 minutes 46.9 seconds apart. Longer login persistence, orchestrator token savings, and cost savings were not measured.
+
+If cleanup cannot be confirmed, the runtime blocks new tasks until an operator verifies that the owned processes and browser have stopped. See [operator recovery](install.md#unconfirmed-cleanup).
 
 ## Real integration battery — 2026-10-15
 
@@ -19,11 +31,9 @@ These observations describe the tested scenarios, not a general success rate or 
 A separate concurrent MCP request during the interruption scenario returned `busy` without admitting another execution. The orchestrator initiated the battery and read status; Codex handled the browsing decisions.
 
 - Combined execution time: approximately **170 seconds**, excluding waits and coordination.
-- Saved-login queries: **31 minutes 46.9 seconds between starts**. The final round was advanced at the user's request; this was not a 55-minute persistence test.
+- Saved-login queries: **31 minutes 46.9 seconds between starts**. Longer persistence was not tested.
 - Known Codex usage: **571,514 input tokens**, including **422,144 cached** and **149,370 uncached**; **2,088 output tokens**.
 - The two interrupted runs did not report usage. Their consumption is **unknown**, excluded from those totals; it must not be reported as zero. Orchestrator usage and cost savings were not measured.
-
-The first launch exposed a runner compatibility bug before any `navegar` call: it used camelCase MCP result attributes rather than the Python SDK's snake_case attributes. The runner was corrected, checked with a real MCP handshake without model/Cloud, and resumed once. Original evidence was preserved. The final three cases were run by a private continuation after confirming the original runner was idle and cleanup complete; previous results and the global 11-call limit were preserved.
 
 ## Other supporting checks
 
@@ -50,19 +60,19 @@ The real MCP acceptance runner passed **6/6 user journeys in 98.6 seconds**:
 
 The faults used real MCP, Codex, and Cloud sessions. Process loss was injected only into verified owned processes in the isolated runtime; the shared computer was not rebooted. Provider unavailability was injected at the private transport boundary; Browser Use Cloud itself was not taken offline. The private transport file was restored after the run. The runtime ended with no pending cleanup or active marker.
 
-Known Codex usage: **350,086 input**, **267,392 cached**, **82,694 uncached**, and **1,397 output tokens**. The interrupted process-loss case has unknown usage and is excluded from these totals. This candidate records the browser ID directly from the creation response before CDP attachment; it does not infer ownership from session-list differences.
+Known Codex usage: **350,086 input**, **267,392 cached**, **82,694 uncached**, and **1,397 output tokens**. The interrupted process-loss case has unknown usage and is excluded from these totals.
 
-A separate empty-runtime setup on the development host also returned an honest `requires_setup` when Cloud credentials were missing; a real MCP handshake and tool call confirmed that response without starting a browser or model. This and the Linux run are installation simulations with inherited authentication, not an independent person's first installation.
+A separate empty-runtime setup on the development host also returned an honest `requires_setup` when Cloud credentials were missing; a real MCP handshake and tool call confirmed that response without starting a browser or model. The installation limitations are summarized above.
 
 ## Update and rollback rehearsal
 
-On the same isolated Linux runtime, setup was run from previous source commit `30ba7c4`, followed by `--check` and one real MCP navigation: **passed in 21.3 s**. Candidate `b3b238a` was then reinstalled and the same check/navigation passed in **18.9 s**. Both returned the expected IANA title/URL and confirmed browser shutdown, with no pending marker. The Cloud key, profile, model, and reasoning setting remained unchanged in both steps. Exactly two additional Codex tasks were used; installed CLI versions and authentication were inherited, not migrated.
+Source rollback to the previous commit and reinstallation of the release candidate each passed local diagnostics and one real MCP navigation, in **21.3 s** and **18.9 s** respectively. Both returned the expected IANA title/URL, confirmed browser shutdown, and left no pending marker. Private configuration was preserved. This exercised source replacement with existing CLIs and authentication; dependency-version migration was not tested.
 
 ## Existing connector deployment
 
-Candidate `b3b238a` was applied to the existing Grok runtime with its key, profile, model, reasoning setting, and MCP registration preserved. Local diagnostics returned `ready`. A single task through Maestro's actual connector returned **Example Domains** and the IANA destination in **17.2 s** (`succeeded`, `browser_closed: true`, `cleanup_pending: false`). Codex usage: 75,488 input / 59,264 cached / 16,224 uncached / 308 output tokens. The platform's available reload operation reconnected all existing MCP connectors; it created no connector or permission. This exposed an update pitfall: reconnecting retained the old idle MCP processes, so their loaded server version was not confirmed by that call. An old server can launch an updated executor from disk; the first call alone does not establish which server version was loaded. The installation guide now requires actual process shutdown before replacement and a version check after restart.
+Reconnecting the existing connector retained old idle MCP processes. A successful task could therefore use an updated executor while the server still had older code loaded. Updates require verified process replacement; see [update or rollback](install.md#update-or-roll-back).
 
-The two verified idle bridge processes were then terminated and the existing connector started one new process after installation. Its real task passed in **18.4 s** with provider-confirmed stop, no pending cleanup, and no active marker. Known usage: **75,451 input / 59,264 cached / 16,187 uncached / 299 output tokens**. The client did not expose its server handshake version; the loaded candidate was established from the installed source and verified process replacement, rather than claiming unavailable metadata. The isolated runtime ended with no task processes, and only its copied Cloud key/profile were removed; production configuration remained intact.
+After the old idle bridge processes were stopped and the connector started a new process, a real task passed in **18.4 s**, with provider-confirmed browser shutdown and no pending cleanup or active marker. Known Codex usage: **75,451 input / 59,264 cached / 16,187 uncached / 299 output tokens**. The client did not expose the server handshake version, so verification relied on installed source and confirmed process replacement. Existing private configuration and MCP registration were preserved.
 
 ## Reproduce the acceptance checks
 
