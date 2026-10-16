@@ -1,10 +1,10 @@
 # Codex Browser Bridge
 
-Delegate browser reading and search to Codex through one MCP call. Send a task and a public URL; Codex navigates and gathers the answer, and the bridge returns the final result after browser cleanup.
+Designed for read-only browser research through one MCP call to Codex. Send a task and a public URL; Codex navigates and gathers the answer, and the bridge returns the final result after browser cleanup.
 
 Built with Codex CLI, agent-browser, and Browser Use Cloud. Tested with Grok Bot / Maestro; other compatible MCP Command/stdio clients have not been validated.
 
-Supports reading pages, following links, scrolling, and searching. Requests to edit, publish, send messages, purchase, or delete are outside its scope. These restrictions are not a security sandbox.
+Supports reading pages, following links, scrolling, and searching. Agent instructions require refusal of requests to edit, publish, send messages, purchase, or delete. A wrapper allowlists browser command names and some arguments, but does not determine whether clicks or typing change site data. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope.
 
 If browser shutdown cannot be confirmed, the bridge reports failure and blocks new tasks until an operator resolves the cleanup.
 

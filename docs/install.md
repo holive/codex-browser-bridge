@@ -2,6 +2,8 @@
 
 The bridge runs beside the orchestrator on its POSIX host. The browser runs in Browser Use Cloud. This guide describes the required contract rather than a particular version of the Grok settings screen.
 
+The bridge is designed for read-only browser research. Agent instructions require navigation/search only and refusal of change requests; a wrapper also restricts browser command names and some arguments. It does not check whether a click or text entry changes site data. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope. See [scope enforcement](technical.md#scope-enforcement) for the exact boundaries.
+
 ## 1. Prepare the host
 
 Obtain the repository in a durable directory. You need Python 3.11+ and Node.js 20+ with npm to install missing CLIs. The deployed environment is Linux. Ensure Node is available on the MCP process PATH even when reusing an existing Node-based CLI; an installed executable may still need it to start.
@@ -80,7 +82,7 @@ Repeat this preparation if the site expires or revokes the login. A `requires_au
 | `succeeded` | Use the final answer. |
 | `requires_setup` | Provide missing private configuration to the MCP process. |
 | `requires_auth` | Prepare or renew the site login manually. |
-| `out_of_scope` | The request asks for changes this connector does not support. |
+| `out_of_scope` | The agent reports that the request is outside its instructed read/research scope. |
 | `busy` | Wait for the active task; inspect cleanup if `cleanup_pending` is present. |
 | `failed` / `timed_out` | Read the error before deciding whether to try again. |
 
