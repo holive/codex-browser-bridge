@@ -30,7 +30,7 @@ Follow the [installation and usage guide](docs/install.md) for configuration, th
 
 ## Scope and limits
 
-The intended scope is read-only browser research. Agent instructions require refusal of requests to edit, publish, send messages, purchase, or delete. A wrapper allowlists browser command names and some arguments, but does not determine whether clicks or typing change site data. It is not a shell-command allowlist for Codex. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope. See [scope enforcement](docs/technical.md#scope-enforcement).
+The intended scope is read-only browser research. Agent instructions require refusal of requests to edit, publish, send messages, purchase, or delete. A wrapper allowlists browser command names and some arguments, and an action guard checks each click, text entry and Enter against the live page, refusing targets that look like send, publish, delete, buy, share or similar controls. The guard works from element roles and names, so unusual labels can slip past it; it is an extra layer, not a guarantee. It is not a shell-command allowlist for Codex. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope. See [scope enforcement](docs/technical.md#scope-enforcement).
 
 Tested with Grok Bot; other compatible MCP Command/stdio clients have not been validated. See the [technical reference](docs/technical.md#runtime-and-contract) for the host architecture, tool contract, and integration boundaries.
 

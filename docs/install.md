@@ -2,7 +2,7 @@
 
 The bridge runs beside the orchestrator on its POSIX host. The browser runs in Browser Use Cloud. This guide describes the required contract rather than a particular version of an orchestrator’s settings screen.
 
-The bridge is designed for read-only browser research. Agent instructions require navigation/search only and refusal of change requests; a wrapper also restricts browser command names and some arguments. It does not check whether a click or text entry changes site data. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope. See [scope enforcement](technical.md#scope-enforcement) for the exact boundaries.
+The bridge is designed for read-only browser research. Agent instructions require navigation/search only and refusal of change requests; a wrapper also restricts browser command names and some arguments. An action guard also refuses clicks, text entry and Enter on targets that look like write actions; it works from element names and roles, so it reduces risk rather than guaranteeing read-only behaviour. This is not a security sandbox or a guarantee of read-only browser actions. Operators who change configuration or code can expand the scope. See [scope enforcement](technical.md#scope-enforcement) for the exact boundaries.
 
 ## 1. Prepare the host
 
